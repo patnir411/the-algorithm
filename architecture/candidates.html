@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Sources - Twitter Algorithm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #15202b;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+        }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { color: #1da1f2; margin: 30px 0 20px 0; font-size: 2em; }
+        h3 { color: #1da1f2; margin: 20px 0 15px 0; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #ffffff;
+            text-decoration: none;
+            opacity: 0.9;
+        }
+        .section {
+            background: #192734;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border-left: 5px solid #1da1f2;
+        }
+        .source-card {
+            background: #15202b;
+            border: 2px solid #38444d;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+        .source-card:hover {
+            border-color: #1da1f2;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(29, 161, 242, 0.2);
+        }
+        .source-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #38444d;
+        }
+        .source-name {
+            font-size: 1.5em;
+            color: #1da1f2;
+            font-weight: 600;
+        }
+        .source-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .in-network { background: #17bf63; color: white; }
+        .out-network { background: #f91880; color: white; }
+        .hybrid { background: #794bc4; color: white; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .info-item {
+            background: #192734;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #38444d;
+        }
+        .info-label {
+            color: #8899a6;
+            font-size: 0.85em;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .info-value {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        .file-ref {
+            background: #15202b;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 3px solid #17bf63;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #17bf63;
+        }
+        code {
+            background: #15202b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #1da1f2;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid #38444d;
+        }
+        pre code { background: none; padding: 0; color: #8899a6; }
+        ul, ol { margin: 15px 0 15px 30px; color: #8899a6; }
+        ul li, ol li { margin: 10px 0; line-height: 1.8; }
+        strong { color: #ffffff; }
+        .highlight-box {
+            background: rgba(29, 161, 242, 0.1);
+            border-left: 4px solid #1da1f2;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+        .algorithm-box {
+            background: #0d1117;
+            border: 2px solid #1da1f2;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .algorithm-box h4 {
+            color: #17bf63;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #38444d;
+        }
+        th {
+            background: #1da1f2;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover { background: rgba(29, 161, 242, 0.05); }
+        .flow-diagram {
+            background: #0d1117;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .flow-box {
+            background: #192734;
+            border: 2px solid #1da1f2;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .flow-arrow {
+            text-align: center;
+            color: #1da1f2;
+            font-size: 2em;
+            margin: 10px 0;
+        }
+        .metric-badge {
+            display: inline-block;
+            background: #1da1f2;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin: 5px 5px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>🎯 Candidate Sources</h1>
+            <p>All tweet candidate sources and generation strategies</p>
+        </header>
+
+        <div class="section">
+            <h2>📊 Overview: The Candidate Generation System</h2>
+            <p>Twitter's recommendation system fetches tweet candidates from <strong>10+ different sources</strong> running in parallel. These sources fall into two main categories:</p>
+
+            <div class="info-grid" style="margin-top: 30px;">
+                <div class="info-item">
+                    <span class="info-label">In-Network Sources</span>
+                    <span class="info-value">~50% of candidates</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Out-of-Network Sources</span>
+                    <span class="info-value">~50% of candidates</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Total Candidates</span>
+                    <span class="info-value">1,500-4,000</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Parallel Sources</span>
+                    <span class="info-value">10+</span>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <strong>💡 Key Concept:</strong> <strong>In-network</strong> candidates come from accounts you follow. <strong>Out-of-network</strong> candidates are discovery content from accounts you don't follow, often shown with social proof like "Liked by @username".
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔵 In-Network Sources</h2>
+            <p>These sources fetch tweets from accounts the user follows.</p>
+
+            <div class="source-card">
+                <div class="source-header">
+                    <span class="source-name">1. Earlybird Search Index</span>
+                    <span class="source-badge in-network">IN-NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    Real-time search index based on Apache Lucene. The primary source for in-network content, providing ~50% of all candidates.
+                </p>
+
+                <div class="file-ref">
+                    📁 /home-mixer/product/scored_tweets/candidate_source/EarlybirdRealtimeCGTweetCandidateSource.scala<br>
+                    📁 /src/java/com/twitter/search/earlybird/
+                </div>
+
+                <h3>Architecture</h3>
+                <div class="flow-diagram">
+                    <div class="flow-box">
+                        <h4>Indexing Pipeline</h4>
+                        <ul style="margin-left: 20px;">
+                            <li>Kafka stream → Ingesters → Feature extraction</li>
+                            <li>Write to Earlybird shards (partitioned index)</li>
+                            <li>Feature Update Service updates engagement counts</li>
+                        </ul>
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-box">
+                        <h4>Query Pipeline</h4>
+                        <ul style="margin-left: 20px;">
+                            <li>User's followed accounts → Seed set</li>
+                            <li>Query: tweets from seed users (7-day window)</li>
+                            <li>Earlybird Root → Fanout to shards</li>
+                            <li>Merge results with relevance scoring</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Index Window</span>
+                        <span class="info-value">7 days</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Throughput</span>
+                        <span class="info-value">50+ RPS/shard</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Latency</span>
+                        <span class="info-value">~50-100ms</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Typical Output</span>
+                        <span class="info-value">~800 tweets</span>
+                    </div>
+                </div>
+
+                <h3>Features Indexed</h3>
+                <ul>
+                    <li><strong>Static:</strong> Tweet text, media URLs, entities, language, author reputation</li>
+                    <li><strong>Real-time:</strong> Favorite count, retweet count, reply count (updated continuously)</li>
+                    <li><strong>Derived:</strong> Text quality score, engagement velocity, age normalization</li>
+                    <li><strong>Safety:</strong> NSFW flags, spam scores, abuse labels</li>
+                </ul>
+
+                <div class="algorithm-box">
+                    <h4>Scoring Algorithm</h4>
+                    <pre><code>EarlybirdScore =
+  recencyScore × recencyWeight +
+  reputationScore × reputationWeight +
+  textScore × textScoreWeight +
+  engagementScore × engagementWeight +
+  socialProofScore × socialProofWeight
+
+// Time decay applied
+recencyScore = exp(-tweetAge / decayHalfLife)</code></pre>
+                </div>
+            </div>
+
+            <div class="source-card">
+                <div class="source-header">
+                    <span class="source-name">2. User-Tweet Graph (UTG)</span>
+                    <span class="source-badge in-network">IN-NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    In-memory bipartite graph connecting users to tweets via engagement actions. Built on GraphJet framework.
+                </p>
+
+                <div class="file-ref">
+                    📁 /cr-mixer/similarity_engine/TweetBasedUserTweetGraphSimilarityEngine.scala<br>
+                    📁 /src/scala/com/twitter/recos/user_tweet_graph/
+                </div>
+
+                <h3>Algorithm: Co-Engagement Based</h3>
+                <div class="algorithm-box">
+                    <h4>Step 1: Find Co-Engagers</h4>
+                    <pre><code>Given: Seed tweet T
+Find: Users who engaged with T
+  engagedUsers = UTG.getLeftNodeEdges(T)
+  Filter: Only users who engaged via [Favorite, Retweet]</code></pre>
+
+                    <h4>Step 2: Find Related Tweets</h4>
+                    <pre><code>For each user U in engagedUsers:
+  relatedTweets += UTG.getRightNodeEdges(U)
+
+Group by tweetId:
+  cooccurrence[tweetId] = count(users who engaged with both T and tweetId)</code></pre>
+
+                    <h4>Step 3: Score Candidates</h4>
+                    <pre><code>For each candidate tweet C:
+  score = cooccurrence[C] / log(degree(C))
+
+Filter:
+  cooccurrence >= minCooccurrence (default: 3)
+  degree(C) >= minResultDegree (default: 50)</code></pre>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Graph Window</span>
+                        <span class="info-value">24-48 hours</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Min Co-occurrence</span>
+                        <span class="info-value">3 users</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Update Frequency</span>
+                        <span class="info-value">Real-time (Kafka)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Typical Output</span>
+                        <span class="info-value">~200-300 tweets</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="source-card">
+                <div class="source-header">
+                    <span class="source-name">3. Lists Timeline</span>
+                    <span class="source-badge in-network">IN-NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    Fetches tweets from Twitter Lists the user has created or subscribed to.
+                </p>
+
+                <div class="file-ref">
+                    📁 /home-mixer/product/scored_tweets/candidate_source/ListsCandidateSource.scala
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Source</span>
+                        <span class="info-value">Timeline Service</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Typical Output</span>
+                        <span class="info-value">~100 tweets</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔴 Out-of-Network Sources</h2>
+            <p>These sources discover content from accounts the user doesn't follow.</p>
+
+            <div class="source-card">
+                <div class="source-header">
+                    <span class="source-name">4. UTEG (User-Tweet-Entity-Graph)</span>
+                    <span class="source-badge out-network">OUT-OF-NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    The primary out-of-network source. Provides "Liked by [your connections]" recommendations based on GraphJet.
+                </p>
+
+                <div class="file-ref">
+                    📁 /cr-mixer/candidate_generation/UtegTweetCandidateGenerator.scala<br>
+                    📁 /src/scala/com/twitter/recos/user_tweet_entity_graph/
+                </div>
+
+                <h3>How UTEG Works</h3>
+                <div class="flow-diagram">
+                    <div class="flow-box">
+                        <h4>Step 1: Seed User Selection</h4>
+                        <p>Fetch users from RealGraph or followed users</p>
+                        <span class="metric-badge">Input: User ID</span>
+                        <span class="metric-badge">Output: ~100-200 seed users</span>
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-box">
+                        <h4>Step 2: Graph Traversal</h4>
+                        <p>Find tweets that seed users engaged with (favorites, retweets)</p>
+                        <span class="metric-badge">Engagement window: 48 hours</span>
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-box">
+                        <h4>Step 3: Social Proof Aggregation</h4>
+                        <p>Track which connections engaged with each tweet</p>
+                        <span class="metric-badge">Max social proof: 10 users per tweet</span>
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-box">
+                        <h4>Step 4: Filtering</h4>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Age filter (default: 24-48 hours)</li>
+                            <li>Social proof types (Favorite, Retweet, Reply)</li>
+                            <li>Tweet types (Regular, Photo, Video, not Retweet)</li>
+                            <li>Direct interactions (exclude user's own content)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Graph Window</span>
+                        <span class="info-value">48 hours</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Social Proof Max</span>
+                        <span class="info-value">10 users</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Update Type</span>
+                        <span class="info-value">Real-time (Kafka)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Typical Output</span>
+                        <span class="info-value">~200 tweets</span>
+                    </div>
+                </div>
+
+                <div class="highlight-box">
+                    <strong>🔑 Why UTEG is Powerful:</strong>
+                    <ul style="margin-top: 10px;">
+                        <li><strong>Social Proof:</strong> Shows which connections engaged → increases trust</li>
+                        <li><strong>Real-time:</strong> Fresh content updated every few seconds</li>
+                        <li><strong>Network Expansion:</strong> Discovers new accounts via your network</li>
+                        <li><strong>High Engagement:</strong> Pre-filtered by engagement from trusted connections</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="source-card">
+                <div class="source-header">
+                    <span class="source-name">5. SimClusters ANN (TWISTLY)</span>
+                    <span class="source-badge out-network">OUT-OF-NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    Embedding-based recommendations using approximate cosine similarity across 145,000 communities.
+                </p>
+
+                <div class="file-ref">
+                    📁 /cr-mixer/similarity_engine/SimClustersANNSimilarityEngine.scala<br>
+                    📁 /simclusters-ann/server/src/main/scala/com/twitter/simclustersann/
+                </div>
+
+                <h3>Algorithm: Approximate Cosine Similarity</h3>
+                <div class="algorithm-box">
+                    <h4>Traditional Approach (Infeasible)</h4>
+                    <pre><code>For 15,000 candidate tweets:
+  Fetch full embedding (200 dimensions)
+  Compute cosine similarity with user embedding
+  → 15,000 embedding fetches = Too expensive!</code></pre>
+
+                    <h4>Approximate Approach (Efficient)</h4>
+                    <pre><code>Step 1: Source Embedding
+  userEmbedding = Top 50 SimClusters for user
+
+Step 2: Candidate Fetching
+  For each cluster C in userEmbedding.top(50):
+    topTweets[C] = Get top 400 tweets for cluster C
+  → ~900 total candidates (50 clusters × ~18 unique tweets)
+
+Step 3: Approximate Matrix
+  Build sparse matrix with only top 50 clusters
+  Other clusters set to 0
+
+Step 4: Dot Product Calculation
+  approximateScore = userEmbedding · candidateApproxEmbedding
+
+Step 5: Top-K Selection
+  candidates = Top 200 by approximateScore
+
+Step 6: True Cosine Similarity
+  For each candidate in top 200:
+    Fetch full embedding (200 dimensions)
+    trueScore = cosine_similarity(userEmbedding, candidateEmbedding)
+
+Step 7: Threshold Filtering
+  finalCandidates = candidates where trueScore >= 0.7</code></pre>
+
+                    <p style="color: #17bf63; margin-top: 15px;">
+                        <strong>Efficiency:</strong> Only fetches ~900 embeddings instead of 15,000 (6% of brute force!)
+                    </p>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Communities</span>
+                        <span class="info-value">145,000</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Cosine Threshold</span>
+                        <span class="info-value">0.7</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Throughput</span>
+                        <span class="info-value">6,000+ RPS</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Typical Output</span>
+                        <span class="info-value">~150-200 tweets</span>
+                    </div>
+                </div>
+
+                <h3>Normalization Methods</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Formula</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Cosine Similarity</strong></td>
+                            <td><code>score / (||user|| × ||tweet||)</code></td>
+                            <td>Standard similarity</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Log-Cosine</strong></td>
+                            <td><code>score / (logNorm_user × log(1 + norm_tweet))</code></td>
+                            <td>Reduces popularity bias</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dot Product</strong></td>
+                            <td><code>score</code></td>
+                            <td>Raw score without normalization</td>
+                        </tr>
+                        <tr>
+                            <td><strong>No Source Norm</strong></td>
+                            <td><code>score / ||tweet||</code></td>
+                            <td>Only normalize by tweet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="source-card">
+                <div class="source-header">
+                    <span class="source-name">6. Real Graph + FRS</span>
+                    <span class="source-badge out-network">OUT-OF-NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    Follow Recommendations Service (FRS) suggests accounts to follow, then fetches their recent tweets.
+                </p>
+
+                <div class="file-ref">
+                    📁 /cr-mixer/candidate_generation/FrsTweetCandidateGenerator.scala<br>
+                    📁 /cr-mixer/source_signal/RealGraphOonSourceGraphFetcher.scala
+                </div>
+
+                <div class="flow-diagram">
+                    <div class="flow-box">
+                        <h4>Step 1: Real Graph</h4>
+                        <p>Predict users you might want to follow</p>
+                        <span class="metric-badge">ML-based interaction prediction</span>
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-box">
+                        <h4>Step 2: FRS Candidate Generation</h4>
+                        <p>Apply filtering, ranking, deduplication</p>
+                        <span class="metric-badge">~100 recommended users</span>
+                    </div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-box">
+                        <h4>Step 3: Tweet Fetching</h4>
+                        <p>Query Earlybird for recent tweets from recommended users</p>
+                        <span class="metric-badge">~5-10 tweets per user</span>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Real Graph Update</span>
+                        <span class="info-value">Daily batch</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">FRS Candidates</span>
+                        <span class="info-value">~100 users</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Typical Output</span>
+                        <span class="info-value">~150-200 tweets</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="source-card">
+                <div class="source-header">
+                    <span class="source-name">7. TwHIN / HNSW ANN</span>
+                    <span class="source-badge out-network">OUT-OF-NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    Dense embeddings using Hierarchical Navigable Small World (HNSW) algorithm for approximate nearest neighbors.
+                </p>
+
+                <div class="file-ref">
+                    📁 /cr-mixer/similarity_engine/HnswANNSimilarityEngine.scala<br>
+                    📁 /cr-mixer/similarity_engine/ConsumerEmbeddingBasedTwHINANNSimilarityEngine.scala
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Embedding Type</span>
+                        <span class="info-value">Dense (TwHIN)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Algorithm</span>
+                        <span class="info-value">HNSW (EF=800)</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Max Results</span>
+                        <span class="info-value">200</span>
+                    </div>
+                </div>
+
+                <h3>Supported Embedding Models</h3>
+                <ul>
+                    <li><strong>TwHIN:</strong> Dense knowledge graph embeddings</li>
+                    <li><strong>Two-Tower:</strong> User-tweet dual encoder</li>
+                    <li><strong>WALS:</strong> Weighted Alternating Least Squares matrix factorization</li>
+                </ul>
+            </div>
+
+            <div class="source-card">
+                <div class="source-header">
+                    <span class="source-name">8. User-Video Graph</span>
+                    <span class="source-badge out-network">OUT-OF-NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    Specialized graph for video content recommendations based on video engagement patterns.
+                </p>
+
+                <div class="file-ref">
+                    📁 /cr-mixer/similarity_engine/TweetBasedUserVideoGraphSimilarityEngine.scala
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Content Type</span>
+                        <span class="info-value">Video Only</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Engagement Signal</span>
+                        <span class="info-value">Video watch ≥50%</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Similar To</span>
+                        <span class="info-value">User-Tweet Graph</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎛️ Source Orchestration: CR-Mixer</h2>
+            <p>The <strong>Content Recommender Mixer (CR-Mixer)</strong> orchestrates candidate generation from multiple sources.</p>
+
+            <div class="file-ref">
+                📁 /cr-mixer/candidate_generation/CrCandidateGenerator.scala<br>
+                📁 /cr-mixer/candidate_generation/CandidateSourcesRouter.scala
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-box">
+                    <h4>Stage 1: Source Signal Extraction</h4>
+                    <p>Fetch user signals and preferences:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Real Graph In/Out-of-Network scores</li>
+                        <li>User Signal Service (USS) - recent favorites, RTs</li>
+                        <li>FRS - follow recommendations</li>
+                    </ul>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h4>Stage 2: Candidate Generation (Parallel)</h4>
+                    <p>Route to appropriate similarity engines:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Tweet-Based:</strong> UTG, UVG, SimClusters ANN, QIG, TwHIN</li>
+                        <li><strong>Producer-Based:</strong> Real Graph, FRS, SALSA</li>
+                        <li><strong>Consumer-Based:</strong> WALS, Ad Graph, Video Graph</li>
+                    </ul>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h4>Stage 3: Filtering</h4>
+                    <p>Pre-rank filters:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li>Exclusion filters (blocked, muted authors)</li>
+                        <li>Age filters (tweet recency)</li>
+                        <li>Negative signals (reported, hidden)</li>
+                    </ul>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h4>Stage 4: Blending</h4>
+                    <p>Mix candidates from different sources:</p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Round-Robin:</strong> Interleave sources</li>
+                        <li><strong>Source Type Back-Fill:</strong> Priority ordering</li>
+                        <li><strong>Content Signal Sorting:</strong> By recency or score</li>
+                    </ul>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h4>Stage 5: Light Ranking</h4>
+                    <p>Fast ML-based pre-ranking to reduce to ~1,000 candidates</p>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h4>Output to Home-Mixer</h4>
+                    <p>Ranked candidates ready for heavy ranking</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Source Comparison Table</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>Type</th>
+                        <th>Algorithm</th>
+                        <th>Window</th>
+                        <th>Update</th>
+                        <th>Output</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Earlybird</strong></td>
+                        <td>In-Network</td>
+                        <td>Lucene Search + ML</td>
+                        <td>7 days</td>
+                        <td>Real-time</td>
+                        <td>~800</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UTG</strong></td>
+                        <td>In-Network</td>
+                        <td>Co-engagement Graph</td>
+                        <td>24-48h</td>
+                        <td>Real-time</td>
+                        <td>~200</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UTEG</strong></td>
+                        <td>Out-of-Network</td>
+                        <td>GraphJet Traversal</td>
+                        <td>48h</td>
+                        <td>Real-time</td>
+                        <td>~200</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SimClusters ANN</strong></td>
+                        <td>Out-of-Network</td>
+                        <td>Approx Cosine Sim</td>
+                        <td>All time</td>
+                        <td>Daily batch</td>
+                        <td>~150</td>
+                    </tr>
+                    <tr>
+                        <td><strong>FRS</strong></td>
+                        <td>Out-of-Network</td>
+                        <td>Real Graph + Earlybird</td>
+                        <td>7 days</td>
+                        <td>Daily batch</td>
+                        <td>~150</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TwHIN ANN</strong></td>
+                        <td>Out-of-Network</td>
+                        <td>HNSW Dense Embeddings</td>
+                        <td>All time</td>
+                        <td>Periodic</td>
+                        <td>~200</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UVG</strong></td>
+                        <td>Out-of-Network</td>
+                        <td>Video Graph</td>
+                        <td>24-48h</td>
+                        <td>Real-time</td>
+                        <td>~100</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lists</strong></td>
+                        <td>In-Network</td>
+                        <td>Timeline Service</td>
+                        <td>7 days</td>
+                        <td>Real-time</td>
+                        <td>~100</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Communities</strong></td>
+                        <td>Hybrid</td>
+                        <td>Community Graph</td>
+                        <td>7 days</td>
+                        <td>Real-time</td>
+                        <td>~50</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cache</strong></td>
+                        <td>Hybrid</td>
+                        <td>Previously Scored</td>
+                        <td>Recent</td>
+                        <td>Per request</td>
+                        <td>~200</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🔑 Key Insights</h2>
+
+            <div class="highlight-box">
+                <h3 style="color: #1da1f2; margin-bottom: 15px;">Why Multiple Sources?</h3>
+                <ul>
+                    <li><strong>Coverage:</strong> Different sources capture different aspects of relevance</li>
+                    <li><strong>Freshness:</strong> Real-time sources (Earlybird, UTEG) + batch sources (SimClusters)</li>
+                    <li><strong>Diversity:</strong> In-network familiarity + out-of-network discovery</li>
+                    <li><strong>Redundancy:</strong> Fallback if one source fails or underperforms</li>
+                    <li><strong>Specialization:</strong> Video-specific, community-specific, embedding-specific</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <h3 style="color: #1da1f2; margin-bottom: 15px;">Parallel Execution Strategy</h3>
+                <p>All sources run simultaneously using Scala's Stitch framework for async execution. Total latency = max(individual source latencies), not sum!</p>
+                <pre><code>Total Latency ≈ 100-200ms
+  = max(
+      Earlybird: 50-100ms,
+      UTEG: 50-80ms,
+      SimClusters: 80-120ms,
+      FRS: 100-150ms,
+      ...
+    )</code></pre>
+            </div>
+
+            <div class="highlight-box">
+                <h3 style="color: #1da1f2; margin-bottom: 15px;">Source Weighting</h3>
+                <p>While all sources contribute candidates, their implicit weights differ:</p>
+                <ul>
+                    <li><strong>Earlybird:</strong> Highest volume (~800 tweets) → Dominates in-network</li>
+                    <li><strong>UTEG:</strong> High quality with social proof → High conversion</li>
+                    <li><strong>SimClusters:</strong> Long-tail discovery → Helps diversity</li>
+                    <li><strong>FRS:</strong> Author discovery → Network growth</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; color: #8899a6; border-top: 1px solid #38444d;">
+            <p><a href="index.html" style="color: #1da1f2;">← Back to Overview</a></p>
+            <p style="margin-top: 15px;">Twitter Algorithm Architecture Documentation</p>
+        </footer>
+    </div>
+</body>
+</html>

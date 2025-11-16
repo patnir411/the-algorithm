@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Algorithms - Twitter Algorithm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #15202b; color: #ffffff; line-height: 1.6; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); padding: 30px; margin-bottom: 30px; border-radius: 12px; }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { color: #1da1f2; margin: 30px 0 20px 0; font-size: 2em; }
+        h3 { color: #1da1f2; margin: 20px 0 15px 0; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #ffffff; text-decoration: none; opacity: 0.9; }
+        .section { background: #192734; border-radius: 12px; padding: 30px; margin-bottom: 25px; border-left: 5px solid #1da1f2; }
+        code { background: #15202b; padding: 2px 8px; border-radius: 4px; font-family: 'Courier New', monospace; color: #1da1f2; font-size: 0.9em; }
+        pre { background: #0d1117; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid #38444d; }
+        pre code { background: none; padding: 0; color: #8899a6; }
+        ul { margin: 15px 0 15px 30px; color: #8899a6; }
+        li { margin: 10px 0; line-height: 1.8; }
+        strong { color: #ffffff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #38444d; }
+        th { background: #1da1f2; color: white; font-weight: 600; }
+        tr:hover { background: rgba(29, 161, 242, 0.05); }
+        .file-ref { background: #15202b; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #17bf63; font-family: 'Courier New', monospace; font-size: 0.85em; color: #17bf63; }
+        .highlight-box { background: rgba(29, 161, 242, 0.1); border-left: 4px solid #1da1f2; padding: 20px; margin: 20px 0; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>🕸️ Graph Algorithms</h1>
+            <p>SimClusters, GraphJet, PageRank, and network traversal</p>
+        </header>
+
+        <div class="section">
+            <h2>🌐 GraphJet: In-Memory Bipartite Graphs</h2>
+            <div class="file-ref">📁 /src/scala/com/twitter/recos/user_tweet_entity_graph/</div>
+            
+            <h3>Architecture</h3>
+            <p>Multi-segment power-law bipartite graphs for real-time recommendations.</p>
+            
+            <pre><code>Configuration:
+  maxNumSegments: 5
+  maxNumEdgesPerSegment: 64M (2^26)
+  expectedNumLeftNodes: 16M (users)
+  expectedNumRightNodes: 16M (tweets)
+  leftPowerLawExponent: 16.0 (steep)
+
+Edge Type Encoding (4 bits):
+  CLICK = 0
+  FAVORITE = 1
+  RETWEET = 2
+  REPLY = 3
+  TWEET = 4
+  
+Edge Storage:
+  edgeArray = [nodeId | (edgeType << 28), ...]
+  Masks: 0x0FFFFFFF (28 bits for node), top 4 bits for type</code></pre>
+
+            <h3>Update Mechanism</h3>
+            <pre><code>Real-time Updates via Kafka:
+1. Live Writer Thread → Current segment
+2. Catch-up Writers (N-1) → Historical segments
+3. Queue: ConcurrentLinkedQueue (1024 semaphore)
+4. Bootstrap: Several hours of backfill
+
+Segment Lifecycle:
+- New segment when current reaches 64M edges
+- When 5 segments reached → drop oldest
+- Enables hot (real-time) + cold (batch) data</code></pre>
+
+            <table>
+                <thead><tr><th>Graph Type</th><th>Left Nodes</th><th>Right Nodes</th><th>Use Case</th></tr></thead>
+                <tbody>
+                    <tr><td>User-Tweet</td><td>Users</td><td>Tweets</td><td>Tweet recommendations</td></tr>
+                    <tr><td>User-Video</td><td>Users</td><td>Videos</td><td>Video recommendations</td></tr>
+                    <tr><td>User-User</td><td>Users</td><td>Users</td><td>Follow recommendations</td></tr>
+                    <tr><td>UTEG</td><td>Users</td><td>Tweets/Entities</td><td>Out-of-network recs</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🎯 SimClusters: Community Detection</h2>
+            <div class="file-ref">📁 /src/scala/com/twitter/simclusters_v2/</div>
+            
+            <h3>Approximate Cosine Similarity Algorithm</h3>
+            <pre><code>Step 1: Source Embedding
+  userEmbedding = Top 50 clusters
+
+Step 2: Candidate Fetching  
+  For each cluster: fetch top 400 tweets
+  → ~900 unique tweets total
+
+Step 3: Approximate Matrix
+  Build sparse matrix (only top 50 clusters)
+
+Step 4: Dot Product
+  approximateScore = userEmbed · tweetApproxEmbed
+
+Step 5: Top-K Selection
+  Select top 200 by approximate score
+
+Step 6: True Cosine Similarity
+  Fetch full embeddings for top 200
+  trueScore = cosine(userEmbed, tweetFullEmbed)
+  
+Step 7: Filter
+  Return tweets where trueScore >= 0.7
+
+Efficiency: 900 fetches vs 15,000 (6% of brute force!)</code></pre>
+
+            <h3>Normalization Methods</h3>
+            <ul>
+                <li><strong>Cosine:</strong> score / (||user|| × ||tweet||)</li>
+                <li><strong>Log-Cosine:</strong> score / (logNorm_user × log(1 + norm_tweet))</li>
+                <li><strong>Dot Product:</strong> Raw score</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>📊 PageRank / Tweepcred</h2>
+            <div class="file-ref">📁 /src/scala/com/twitter/graph/batch/job/tweepcred/WeightedPageRank.scala</div>
+            
+            <h3>Algorithm</h3>
+            <pre><code>Parameters:
+  ALPHA = 0.1 (jump probability)
+  THRESHOLD = 0.001 (convergence)
+  MAXITERATIONS = 20
+
+One PageRank Iteration:
+  For unweighted:
+    PR_next(i) = Σ(PR(j) / degree(j)) for all j→i
+    
+  For weighted:
+    PR_next(i) = Σ(PR(j) × w(j,i) / totalWeight(j))
+    
+  Random jump:
+    deadPR = (1 - Σ PR_next(i)) / N
+    randomPR(i) = userMass(i) × ALPHA + deadPR × (1-ALPHA)
+    
+  Final:
+    PR_output(i) = randomPR(i) + PR_next(i) × (1-ALPHA)
+
+Convergence:
+  if totalDiff < THRESHOLD or iteration >= 20:
+    Extract Tweepcred scores
+  else:
+    Continue to next iteration</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Graph Traversal Patterns</h2>
+            
+            <h3>1. Left-Node Sampling (UTEG)</h3>
+            <pre><code>Goal: Find users who engaged with tweet T
+
+sampledUsers = []
+iterator = graph.getRandomRightNodeEdges(T, maxSamples=100)
+
+while iterator.hasNext:
+  userId = iterator.nextLong()
+  degree = graph.getLeftNodeDegree(userId)
+  
+  # Filter power users
+  if degree < 100:
+    sampledUsers.append(userId)
+
+return sampledUsers</code></pre>
+
+            <h3>2. Right-Node Fetching</h3>
+            <pre><code>Goal: Find tweets from sampled users
+
+relatedTweets = []
+for userId in sampledUsers:
+  iterator = graph.getLeftNodeEdges(userId)
+  
+  while iterator.hasNext:
+    tweetId = iterator.nextLong()
+    edgeType = iterator.currentEdgeType()
+    
+    # Filter by engagement type
+    if edgeType in [FAVORITE, RETWEET]:
+      relatedTweets.append(tweetId)
+
+return relatedTweets.distinct()</code></pre>
+
+            <h3>3. Co-occurrence Scoring</h3>
+            <pre><code>Goal: Score candidates by co-engagement
+
+cooccurrence = Counter(relatedTweets)
+
+candidates = []
+for tweetId, count in cooccurrence.items():
+  degree = graph.getRightNodeDegree(tweetId)
+  
+  # Filters
+  if count >= minCooccurrence (3) and degree >= minDegree (50):
+    # Log-cosine score
+    score = count × queryDegree / log(degree) / sampleSize
+    candidates.append((tweetId, score))
+
+return sorted(candidates, key=score, reverse=True)</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>🔄 Graph Comparison</h2>
+            
+            <table>
+                <thead>
+                    <tr><th>Algorithm</th><th>Data Structure</th><th>Latency</th><th>Update</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>SimClusters</td><td>Dense embeddings (100-200 dims)</td><td>~50ms</td><td>Daily batch</td></tr>
+                    <tr><td>Real Graph</td><td>Dense weights matrix</td><td>~100ms</td><td>Daily batch</td></tr>
+                    <tr><td>GraphJet</td><td>Multi-segment bipartite</td><td>~50ms</td><td>Real-time</td></tr>
+                    <tr><td>PageRank</td><td>Graph matrix</td><td>N/A (batch)</td><td>Batch iterative</td></tr>
+                    <tr><td>GFS</td><td>Sorted node lists</td><td>~100ms</td><td>Batch/online</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🎓 Key Insights</h2>
+            
+            <div class="highlight-box">
+                <h3>Why Multiple Graph Algorithms?</h3>
+                <ul>
+                    <li><strong>SimClusters:</strong> Interpretable communities, sparse, efficient ANN</li>
+                    <li><strong>GraphJet:</strong> Real-time updates, fresh engagement signals</li>
+                    <li><strong>PageRank:</strong> Global reputation, anti-spam signal</li>
+                    <li><strong>Real Graph:</strong> Personalized user-user similarity</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <h3>Real-time vs Batch Tradeoff</h3>
+                <ul>
+                    <li><strong>Real-time (GraphJet):</strong> Fresh (48h window), low latency (~50ms)</li>
+                    <li><strong>Batch (SimClusters):</strong> Comprehensive (all history), daily updates</li>
+                    <li><strong>Hybrid:</strong> Best of both worlds - fresh signals + stable patterns</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; color: #8899a6; border-top: 1px solid #38444d;">
+            <p><a href="index.html" style="color: #1da1f2;">← Back to Overview</a></p>
+        </footer>
+    </div>
+</body>
+</html>

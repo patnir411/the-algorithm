@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services Architecture - Twitter Algorithm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #15202b; color: #ffffff; line-height: 1.6; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); padding: 30px; margin-bottom: 30px; border-radius: 12px; }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { color: #1da1f2; margin: 30px 0 20px 0; font-size: 2em; }
+        h3 { color: #1da1f2; margin: 20px 0 15px 0; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #ffffff; text-decoration: none; opacity: 0.9; }
+        .section { background: #192734; border-radius: 12px; padding: 30px; margin-bottom: 25px; border-left: 5px solid #1da1f2; }
+        .service-card { background: #15202b; border: 2px solid #38444d; border-radius: 12px; padding: 25px; margin: 20px 0; }
+        .service-header { color: #1da1f2; font-size: 1.3em; font-weight: 600; margin-bottom: 15px; }
+        code { background: #15202b; padding: 2px 8px; border-radius: 4px; font-family: 'Courier New', monospace; color: #1da1f2; font-size: 0.9em; }
+        ul { margin: 15px 0 15px 30px; color: #8899a6; }
+        li { margin: 10px 0; line-height: 1.8; }
+        strong { color: #ffffff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #38444d; }
+        th { background: #1da1f2; color: white; font-weight: 600; }
+        tr:hover { background: rgba(29, 161, 242, 0.05); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>⚙️ Services Architecture</h1>
+            <p>20+ microservices powering the recommendation system</p>
+        </header>
+
+        <div class="section">
+            <h2>🏗️ Microservices Overview</h2>
+            <table>
+                <thead><tr><th>Service</th><th>Layer</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Home-Mixer</strong></td><td>Orchestration</td><td>Main timeline service</td></tr>
+                    <tr><td><strong>CR-Mixer</strong></td><td>Orchestration</td><td>Candidate generation orchestrator</td></tr>
+                    <tr><td><strong>Pushservice</strong></td><td>Orchestration</td><td>Push notification recommendations</td></tr>
+                    <tr><td><strong>Earlybird</strong></td><td>Candidate Gen</td><td>Real-time search index</td></tr>
+                    <tr><td><strong>Navi</strong></td><td>ML Serving</td><td>High-performance model serving</td></tr>
+                    <tr><td><strong>Tweetypie</strong></td><td>Data</td><td>Core tweet service</td></tr>
+                    <tr><td><strong>User Signal Service</strong></td><td>Data</td><td>Centralized user signals</td></tr>
+                    <tr><td><strong>SimClusters ANN</strong></td><td>Candidate Gen</td><td>Embedding-based recommendations</td></tr>
+                    <tr><td><strong>Follow Recommendations</strong></td><td>Candidate Gen</td><td>User & tweet recommendations</td></tr>
+                    <tr><td><strong>Visibility Library</strong></td><td>Safety</td><td>Content filtering rules</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Data Layer Services</h2>
+
+            <div class="service-card">
+                <div class="service-header">Tweetypie</div>
+                <p><strong>Purpose:</strong> Core tweet read/write service</p>
+                <ul>
+                    <li>Handles all tweet operations (create, read, delete)</li>
+                    <li>Fetches from Manhattan database or Twemcache</li>
+                    <li>Hydrates tweet data from multiple backends</li>
+                    <li>Key packages: backends/, repository/, hydrator/, handler/</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">Unified User Actions (UUA)</div>
+                <p><strong>Purpose:</strong> Real-time user action stream</p>
+                <ul>
+                    <li>Kafka-based architecture for action events</li>
+                    <li>Tracks: favorites, retweets, replies, bookmarks, video views</li>
+                    <li>Replicated to HDFS, GCP Pubsub, GCS, BigQuery</li>
+                    <li>Components: Adapter, Kafka utilities, Service deployment</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">User Signal Service (USS)</div>
+                <p><strong>Purpose:</strong> Centralized platform for user signals</p>
+                <ul>
+                    <li>Explicit signals: likes, retweets, replies</li>
+                    <li>Implicit signals: clicks, views, profile visits</li>
+                    <li>Used by all downstream ranking systems</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🤖 ML & Embeddings Layer</h2>
+
+            <div class="service-card">
+                <div class="service-header">Navi (ML Serving)</div>
+                <p><strong>Purpose:</strong> High-performance Rust-based ML serving</p>
+                <ul>
+                    <li>gRPC API compatible with TensorFlow Serving</li>
+                    <li>Supports: TensorFlow, ONNX Runtime, PyTorch</li>
+                    <li>Batch prediction for efficient GPU utilization</li>
+                    <li>Used for heavy ranking inference</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">SimClusters</div>
+                <p><strong>Purpose:</strong> Community detection & sparse embeddings</p>
+                <ul>
+                    <li>145,000 communities covering 20M+ users</li>
+                    <li>KnownFor, InterestedIn matrices</li>
+                    <li>Real-time tweet embeddings via Summingbird</li>
+                    <li>Daily batch jobs via Scalding</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">Representation Manager (RMS)</div>
+                <p><strong>Purpose:</strong> Embedding serving facade</p>
+                <ul>
+                    <li>Centralized access to SimClusters, TwHIN embeddings</li>
+                    <li>Caching layer for fast retrieval</li>
+                    <li>Interface to multiple storage backends</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">Real Graph</div>
+                <p><strong>Purpose:</strong> User interaction prediction</p>
+                <ul>
+                    <li>Gradient boosting classifier</li>
+                    <li>Predicts user-to-user interaction probability</li>
+                    <li>Daily batch computation (BigQuery ML, SCIO)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Candidate Generation Layer</h2>
+
+            <div class="service-card">
+                <div class="service-header">Earlybird</div>
+                <p><strong>Purpose:</strong> Real-time search and indexing</p>
+                <ul>
+                    <li>Apache Lucene-based</li>
+                    <li>Three clusters: realtime (7 days), protected, archive</li>
+                    <li>50+ RPS per shard with low latency</li>
+                    <li>Feature Update Service for real-time engagement counts</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">GraphJet Services</div>
+                <p><strong>Purpose:</strong> In-memory bipartite graphs</p>
+                <ul>
+                    <li>User-Tweet Graph (UTG)</li>
+                    <li>User-Tweet-Entity Graph (UTEG)</li>
+                    <li>User-Video Graph (UVG)</li>
+                    <li>User-User Graph</li>
+                    <li>Real-time updates via Kafka streaming</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">CR-Mixer</div>
+                <p><strong>Purpose:</strong> Candidate generation orchestrator</p>
+                <ul>
+                    <li>Routes to appropriate similarity engines</li>
+                    <li>Combines multiple candidate sources</li>
+                    <li>Light ranking and filtering</li>
+                    <li>Versioning and feature switches</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">Follow Recommendations Service (FRS)</div>
+                <p><strong>Purpose:</strong> User and tweet recommendations</p>
+                <ul>
+                    <li>5-stage pipeline: fetch, filter, rank, transform, truncate</li>
+                    <li>Customizable per display location</li>
+                    <li>Provides both users and their tweets</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">SimClusters ANN</div>
+                <p><strong>Purpose:</strong> Approximate nearest neighbors</p>
+                <ul>
+                    <li>Approximate cosine similarity (6% of brute force)</li>
+                    <li>6,000+ RPS throughput</li>
+                    <li>Multiple model versions (prod, experimental)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎨 Framework Layer</h2>
+
+            <div class="service-card">
+                <div class="service-header">Product Mixer</div>
+                <p><strong>Purpose:</strong> Reusable recommendation framework</p>
+                <ul>
+                    <li>Pipeline-based architecture (Product, Mixer, Recommendation, Candidate, Scoring)</li>
+                    <li>200+ reusable components (selectors, filters, transforms)</li>
+                    <li>Shared library for common integrations</li>
+                    <li>Powers Home-Mixer, Pushservice, etc.</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">Home-Mixer</div>
+                <p><strong>Purpose:</strong> Main timeline orchestrator</p>
+                <ul>
+                    <li>For You and Following timelines</li>
+                    <li>22+ candidate pipelines</li>
+                    <li>Feature hydration (~6,000 features)</li>
+                    <li>ML scoring via Navi</li>
+                    <li>Mixing with ads, who-to-follow</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">TimelineRanker (Legacy)</div>
+                <p><strong>Purpose:</strong> Relevance-scored tweets</p>
+                <ul>
+                    <li>Integrates Search Index + UTEG</li>
+                    <li>Used by Home Mixer as backup</li>
+                    <li>Interacts with Social Graph Service</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🛡️ Safety & Quality Layer</h2>
+
+            <div class="service-card">
+                <div class="service-header">Visibility Library</div>
+                <p><strong>Purpose:</strong> Content filtering rule engine</p>
+                <ul>
+                    <li>15+ visibility policies</li>
+                    <li>Actions: Drop, Tombstone, Interstitial, Downrank</li>
+                    <li>Safety labels and conditions</li>
+                    <li>Legal compliance support</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">Trust & Safety Models</div>
+                <p><strong>Purpose:</strong> ML-based content moderation</p>
+                <ul>
+                    <li>pNSFWMedia: Image NSFW detection</li>
+                    <li>pNSFWText: Text NSFW detection</li>
+                    <li>pToxicity: Toxic content detection</li>
+                    <li>pAbuse: Abusive content detection</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔌 Communication & Data Flow</h2>
+
+            <div class="service-card">
+                <div class="service-header">RPC: Thrift</div>
+                <ul>
+                    <li>Primary communication protocol</li>
+                    <li>Strongly-typed interfaces</li>
+                    <li>Service definitions in src/thrift/</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">Streaming: Kafka</div>
+                <ul>
+                    <li>User action streams (UUA)</li>
+                    <li>GraphJet updates (Recos-Injector)</li>
+                    <li>Real-time embeddings (SimClusters)</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">Storage</div>
+                <ul>
+                    <li><strong>Manhattan:</strong> Distributed database (tweets, user data)</li>
+                    <li><strong>Memcached:</strong> Caching layer</li>
+                    <li><strong>HDFS:</strong> Batch job storage</li>
+                    <li><strong>BigQuery:</strong> Data warehouse</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; color: #8899a6; border-top: 1px solid #38444d;">
+            <p><a href="index.html" style="color: #1da1f2;">← Back to Overview</a></p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technical Reference - Twitter Algorithm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #15202b; color: #ffffff; line-height: 1.6; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        header { background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); padding: 30px; margin-bottom: 30px; border-radius: 12px; }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { color: #1da1f2; margin: 30px 0 20px 0; font-size: 2em; }
+        h3 { color: #1da1f2; margin: 20px 0 15px 0; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #ffffff; text-decoration: none; opacity: 0.9; }
+        .section { background: #192734; border-radius: 12px; padding: 30px; margin-bottom: 25px; border-left: 5px solid #1da1f2; }
+        code { background: #15202b; padding: 2px 8px; border-radius: 4px; font-family: 'Courier New', monospace; color: #1da1f2; font-size: 0.9em; }
+        .file-ref { background: #0d1117; padding: 12px 15px; border-radius: 6px; margin: 8px 0; border-left: 3px solid #17bf63; font-family: 'Courier New', monospace; font-size: 0.85em; color: #17bf63; }
+        ul { margin: 15px 0 15px 30px; color: #8899a6; }
+        li { margin: 10px 0; line-height: 1.8; }
+        strong { color: #ffffff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #38444d; }
+        th { background: #1da1f2; color: white; font-weight: 600; }
+        tr:hover { background: rgba(29, 161, 242, 0.05); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>📖 Technical Reference</h1>
+            <p>File locations, parameters, and API documentation</p>
+        </header>
+
+        <div class="section">
+            <h2>📁 Key File Locations</h2>
+
+            <h3>Main Pipelines</h3>
+            <div class="file-ref">ForYouProductPipelineConfig.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/product/for_you/</div>
+            <div class="file-ref">ForYouMixerPipelineConfig.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/product/for_you/</div>
+            <div class="file-ref">ScoredTweetsRecommendationPipelineConfig.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/product/scored_tweets/</div>
+
+            <h3>Ranking & Scoring</h3>
+            <div class="file-ref">WeighedModelRerankingScorer.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/functional_component/scorer/</div>
+            <div class="file-ref">NaviModelScorer.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/functional_component/scorer/</div>
+            <div class="file-ref">PredictedScoreFeature.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/model/</div>
+
+            <h3>Candidate Sources</h3>
+            <div class="file-ref">EarlybirdRealtimeCGTweetCandidateSource.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/product/scored_tweets/candidate_source/</div>
+            <div class="file-ref">CrCandidateGenerator.scala<br>/cr-mixer/server/src/main/scala/com/twitter/cr_mixer/candidate_generation/</div>
+            <div class="file-ref">UtegTweetCandidateGenerator.scala<br>/cr-mixer/server/src/main/scala/com/twitter/cr_mixer/candidate_generation/</div>
+
+            <h3>ML Models</h3>
+            <div class="file-ref">heavy_ranking/lib/model.py<br>/pushservice/src/main/python/models/heavy_ranking/</div>
+            <div class="file-ref">light_ranking/model_pools_mlp.py<br>/pushservice/src/main/python/models/light_ranking/</div>
+            <div class="file-ref">navi/<br>/navi/</div>
+
+            <h3>Graph Algorithms</h3>
+            <div class="file-ref">SimClustersANNSimilarityEngine.scala<br>/cr-mixer/server/src/main/scala/com/twitter/cr_mixer/similarity_engine/</div>
+            <div class="file-ref">TweetRecommendationsRunner.scala<br>/src/scala/com/twitter/recos/user_tweet_entity_graph/</div>
+            <div class="file-ref">WeightedPageRank.scala<br>/src/scala/com/twitter/graph/batch/job/tweepcred/</div>
+
+            <h3>Parameters</h3>
+            <div class="file-ref">HomeGlobalParams.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/param/</div>
+            <div class="file-ref">ForYouParam.scala<br>/home-mixer/server/src/main/scala/com/twitter/home_mixer/product/for_you/param/</div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Configuration Parameters</h2>
+
+            <h3>Timeline Parameters</h3>
+            <table>
+                <thead><tr><th>Parameter</th><th>Default</th><th>Range</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td>ServerMaxResultsParam</td><td>35</td><td>1-500</td><td>Tweets per response</td></tr>
+                    <tr><td>AdsNumOrganicItemsParam</td><td>35</td><td>1-100</td><td>Organic items before ads</td></tr>
+                    <tr><td>RequestRankDecayFactorParam</td><td>0.95</td><td>0-1</td><td>Time decay for ranking</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Weight Parameters (Per Signal)</h3>
+            <table>
+                <thead><tr><th>Signal</th><th>Parameter Name</th><th>Range</th></tr></thead>
+                <tbody>
+                    <tr><td>Favorite</td><td>home_mixer_model_weight_fav</td><td>-10000 to +10000</td></tr>
+                    <tr><td>Retweet</td><td>home_mixer_model_weight_retweet</td><td>-10000 to +10000</td></tr>
+                    <tr><td>Reply</td><td>home_mixer_model_weight_reply</td><td>-10000 to +10000</td></tr>
+                    <tr><td>Dwell</td><td>home_mixer_model_weight_dwell</td><td>-10000 to +10000</td></tr>
+                    <tr><td>Negative Feedback</td><td>home_mixer_model_weight_negative_feedback_v2</td><td>-10000 to +10000</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Negative Signal Filtering</h3>
+            <table>
+                <thead><tr><th>Parameter</th><th>Default</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td>NegativeScoreConstantFilterThreshold</td><td>0.001</td><td>Constant threshold for negative signals</td></tr>
+                    <tr><td>NegativeScoreNormFilterThreshold</td><td>0.15</td><td>Normalized threshold (15% of max)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>SimClusters Parameters</h3>
+            <table>
+                <thead><tr><th>Parameter</th><th>Value</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td>Communities</td><td>145,000</td><td>Total number of clusters</td></tr>
+                    <tr><td>Cosine Threshold</td><td>0.7</td><td>Minimum similarity score</td></tr>
+                    <tr><td>Top Clusters per Entity</td><td>50-100</td><td>Sparse embedding size</td></tr>
+                    <tr><td>Top Tweets per Cluster</td><td>400</td><td>Candidate fetching limit</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Diversity Parameters</h3>
+            <table>
+                <thead><tr><th>Parameter</th><th>Default</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td>Author Diversity Decay</td><td>0.5</td><td>Exponential decay per repeated author</td></tr>
+                    <tr><td>Author Diversity Floor</td><td>0.25</td><td>Minimum score multiplier</td></tr>
+                    <tr><td>Semantic Clustering Threshold (Strict)</td><td>0.95</td><td>Deduplication similarity</td></tr>
+                    <tr><td>Semantic Clustering Threshold (Loose)</td><td>0.88</td><td>Deduplication similarity</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>📊 System Metrics</h2>
+
+            <table>
+                <thead><tr><th>Metric</th><th>Value</th><th>Context</th></tr></thead>
+                <tbody>
+                    <tr><td>Source Files</td><td>6,133</td><td>Total codebase</td></tr>
+                    <tr><td>Scala</td><td>79%</td><td>Primary language</td></tr>
+                    <tr><td>Java</td><td>17%</td><td>Search infrastructure</td></tr>
+                    <tr><td>Python</td><td>3%</td><td>ML training</td></tr>
+                    <tr><td>Rust</td><td>0.5%</td><td>ML serving (Navi)</td></tr>
+                    <tr><td>Microservices</td><td>20+</td><td>Independent services</td></tr>
+                    <tr><td>Candidate Sources</td><td>10+</td><td>Parallel fetching</td></tr>
+                    <tr><td>Features per Tweet</td><td>~6,000</td><td>ML model input</td></tr>
+                    <tr><td>Engagement Signals</td><td>15</td><td>Predicted per tweet</td></tr>
+                    <tr><td>Filter Types</td><td>50+</td><td>Quality & safety</td></tr>
+                    <tr><td>End-to-End Latency</td><td>200-500ms</td><td>Timeline generation</td></tr>
+                    <tr><td>Earlybird RPS</td><td>50+</td><td>Per shard</td></tr>
+                    <tr><td>SimClusters ANN RPS</td><td>6,000+</td><td>System throughput</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🔑 Data Structures</h2>
+
+            <h3>SimClusters Embedding</h3>
+            <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>clusterId</td><td>i64</td><td>Community identifier</td></tr>
+                    <tr><td>score</td><td>double</td><td>Affinity score</td></tr>
+                    <tr><td>l2norm</td><td>double</td><td>L2 normalization factor</td></tr>
+                    <tr><td>logNorm</td><td>double</td><td>Log normalization factor</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Real Graph Neighbor</h3>
+            <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>neighborId</td><td>i64</td><td>User ID</td></tr>
+                    <tr><td>isFollowed</td><td>bool</td><td>Follow status</td></tr>
+                    <tr><td>followScoreNormalizedByNeighborFollowersL2</td><td>double</td><td>Follow score</td></tr>
+                    <tr><td>favScoreHalfLife100Days</td><td>double</td><td>Favorite score (decayed)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>UTEG Request</h3>
+            <table>
+                <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>requesterId</td><td>i64</td><td>Query user</td></tr>
+                    <tr><td>seedsWithWeights</td><td>Map&lt;i64, double&gt;</td><td>Seed users with importance</td></tr>
+                    <tr><td>maxTweetAgeInMillis</td><td>i64</td><td>Content recency filter</td></tr>
+                    <tr><td>socialProofTypes</td><td>List&lt;SocialProofType&gt;</td><td>Engagement types</td></tr>
+                    <tr><td>maxNumResults</td><td>i32</td><td>Result limit</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🏷️ Thrift Enums</h2>
+
+            <h3>Social Proof Type</h3>
+            <ul>
+                <li>CLICK = 0</li>
+                <li>FAVORITE = 1</li>
+                <li>RETWEET = 2</li>
+                <li>REPLY = 3</li>
+                <li>TWEET = 4</li>
+                <li>IS_MENTIONED = 5</li>
+                <li>IS_MEDIATAGGED = 6</li>
+                <li>QUOTE = 7</li>
+            </ul>
+
+            <h3>Tweet Type</h3>
+            <ul>
+                <li>REGULAR</li>
+                <li>SUMMARY</li>
+                <li>PHOTO</li>
+                <li>PLAYER (video)</li>
+            </ul>
+
+            <h3>Display Location</h3>
+            <ul>
+                <li>MagicRecsF1 (For You Timeline)</li>
+                <li>MagicRecsRareTweet</li>
+                <li>HomeTimelineTweetRecs</li>
+                <li>PushNotification</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Technology Stack</h2>
+
+            <h3>Languages</h3>
+            <ul>
+                <li><strong>Scala:</strong> Primary language (79%) - Services, pipelines, batch jobs</li>
+                <li><strong>Java:</strong> Search infrastructure (17%) - Earlybird, Finatra services</li>
+                <li><strong>Python:</strong> ML training (3%) - Model scripts, training pipelines</li>
+                <li><strong>Rust:</strong> ML serving (0.5%) - Navi high-performance inference</li>
+            </ul>
+
+            <h3>Frameworks</h3>
+            <ul>
+                <li><strong>Product Mixer:</strong> Pipeline framework</li>
+                <li><strong>Finatra:</strong> HTTP service framework</li>
+                <li><strong>GraphJet:</strong> In-memory graph processing</li>
+                <li><strong>Scalding:</strong> Hadoop MapReduce DSL</li>
+                <li><strong>Scio:</strong> Apache Beam wrapper</li>
+                <li><strong>Summingbird:</strong> Unified batch/stream processing</li>
+                <li><strong>TWML:</strong> Twitter ML framework (legacy TensorFlow v1)</li>
+            </ul>
+
+            <h3>Infrastructure</h3>
+            <ul>
+                <li><strong>Build:</strong> Bazel</li>
+                <li><strong>RPC:</strong> Thrift</li>
+                <li><strong>Streaming:</strong> Kafka</li>
+                <li><strong>Database:</strong> Manhattan (distributed)</li>
+                <li><strong>Cache:</strong> Memcached, Twemcache</li>
+                <li><strong>Storage:</strong> HDFS, BigQuery, GCS</li>
+                <li><strong>ML Runtime:</strong> TensorFlow, ONNX, PyTorch (via Navi)</li>
+                <li><strong>Search:</strong> Apache Lucene (Earlybird)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>📝 Quick Reference Formulas</h2>
+
+            <h3>Final Score Calculation</h3>
+            <pre style="background: #0d1117; padding: 20px; border-radius: 8px; overflow-x: auto;"><code>For each tweet candidate:
+  1. normalized_score_i = score_i / max(all_scores_i)  # Per-head normalization
+  2. weighted_score_i = normalized_score_i × weight_i
+  3. final_score = Σ(weighted_score_i) + ε  # ε = 0.001
+  4. Sort by final_score (descending)</code></pre>
+
+            <h3>SimClusters Cosine Similarity</h3>
+            <pre style="background: #0d1117; padding: 20px; border-radius: 8px; overflow-x: auto;"><code>score = (userEmbedding · tweetEmbedding) / (||userEmbedding|| × ||tweetEmbedding||)
+  
+Log-Cosine variant:
+score = (userEmbedding · tweetEmbedding) / (logNorm_user × log(1 + norm_tweet))</code></pre>
+
+            <h3>Author Diversity</h3>
+            <pre style="background: #0d1117; padding: 20px; border-radius: 8px; overflow-x: auto;"><code>multiplier_n = decay^(n-1) + floor
+  where n = tweet position from same author
+  
+Example (decay=0.5, floor=0.25):
+  1st: 1.0
+  2nd: 0.625
+  3rd: 0.4375</code></pre>
+
+            <h3>PageRank Iteration</h3>
+            <pre style="background: #0d1117; padding: 20px; border-radius: 8px; overflow-x: auto;"><code>PR_next(i) = Σ(PR(j) × w(j,i) / totalWeight(j)) for all j→i
+randomPR(i) = userMass(i) × ALPHA + deadPR × (1-ALPHA)
+PR_output(i) = randomPR(i) + PR_next(i) × (1-ALPHA)</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>🔗 Related Documentation</h2>
+            <ul>
+                <li><strong>Main Repository:</strong> github.com/twitter/the-algorithm</li>
+                <li><strong>ML Training:</strong> github.com/twitter/the-algorithm-ml</li>
+                <li><strong>README:</strong> /README.md (system overview)</li>
+                <li><strong>Retrieval Signals:</strong> /RETRIEVAL_SIGNALS.md (signal definitions)</li>
+            </ul>
+        </div>
+
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; color: #8899a6; border-top: 1px solid #38444d;">
+            <p><a href="index.html" style="color: #1da1f2;">← Back to Overview</a></p>
+            <p style="margin-top: 15px;">Twitter Algorithm Architecture Documentation</p>
+        </footer>
+    </div>
+</body>
+</html>

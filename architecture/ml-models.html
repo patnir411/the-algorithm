@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Models & Features - Twitter Algorithm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #15202b; color: #ffffff; line-height: 1.6;
+        }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+            padding: 30px; margin-bottom: 30px; border-radius: 12px;
+        }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { color: #1da1f2; margin: 30px 0 20px 0; font-size: 2em; }
+        h3 { color: #1da1f2; margin: 20px 0 15px 0; }
+        .back-link { display: inline-block; margin-bottom: 15px; color: #ffffff; text-decoration: none; opacity: 0.9; }
+        .section { background: #192734; border-radius: 12px; padding: 30px; margin-bottom: 25px; border-left: 5px solid #1da1f2; }
+        .model-card { background: #15202b; border: 2px solid #38444d; border-radius: 12px; padding: 25px; margin: 20px 0; }
+        .model-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #38444d; }
+        .model-name { font-size: 1.5em; color: #1da1f2; font-weight: 600; }
+        .model-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
+        .neural { background: #f91880; color: white; }
+        .boosting { background: #17bf63; color: white; }
+        .embedding { background: #794bc4; color: white; }
+        code { background: #15202b; padding: 2px 8px; border-radius: 4px; font-family: 'Courier New', monospace; color: #1da1f2; font-size: 0.9em; }
+        pre { background: #0d1117; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; border: 1px solid #38444d; }
+        pre code { background: none; padding: 0; color: #8899a6; }
+        ul { margin: 15px 0 15px 30px; color: #8899a6; }
+        li { margin: 10px 0; line-height: 1.8; }
+        strong { color: #ffffff; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #38444d; }
+        th { background: #1da1f2; color: white; font-weight: 600; }
+        tr:hover { background: rgba(29, 161, 242, 0.05); }
+        .file-ref { background: #15202b; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 3px solid #17bf63; font-family: 'Courier New', monospace; font-size: 0.85em; color: #17bf63; }
+        .highlight-box { background: rgba(29, 161, 242, 0.1); border-left: 4px solid #1da1f2; padding: 20px; margin: 20px 0; border-radius: 6px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .info-item { background: #192734; padding: 15px; border-radius: 8px; border: 1px solid #38444d; }
+        .info-label { color: #8899a6; font-size: 0.85em; display: block; margin-bottom: 8px; }
+        .info-value { color: #ffffff; font-weight: 600; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>🤖 ML Models & Features</h1>
+            <p>Neural networks, embeddings, and feature engineering pipeline</p>
+        </header>
+
+        <div class="section">
+            <h2>📊 ML Model Architecture Overview</h2>
+            <p>Twitter's recommendation system uses <strong>5 major ML model categories</strong> with ~6,000 features per candidate.</p>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Total Features</span>
+                    <span class="info-value">~6,000</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Heavy Ranker</span>
+                    <span class="info-value">Neural Network</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Embeddings</span>
+                    <span class="info-value">145K Communities</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Model Serving</span>
+                    <span class="info-value">Navi (Rust)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧠 Heavy Ranker Model</h2>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-name">ClemNet Architecture</span>
+                    <span class="model-badge neural">NEURAL NETWORK</span>
+                </div>
+
+                <p style="color: #8899a6; margin-bottom: 20px;">
+                    Multi-task learning neural network for push notification ranking. Predicts both open probability and engagement likelihood.
+                </p>
+
+                <div class="file-ref">
+                    📁 /pushservice/src/main/python/models/heavy_ranking/lib/model.py<br>
+                    📁 /pushservice/src/main/python/models/heavy_ranking/deep_norm.py
+                </div>
+
+                <h3>Architecture</h3>
+                <pre><code>Input Features (~250 features)
+    ↓
+Dense Branch (Continuous Features)
+  - Z-score normalization
+  - Dense layers: 1024 → 512 → 256 → 128
+  - Batch normalization with renorm
+  ↓
+Sparse Branch (Discrete Features)
+  - Hash space: 2^18 = 262,144 dims
+  - Embedding size: 50 dims
+  - Full sparse layers
+  ↓
+Residual Blocks (Stacked)
+  - Dense layers + 1D Convolution (kernel=3, filters=5)
+  - Batch normalization
+  - Residual connections
+  - LeakyReLU activation
+  ↓
+Multi-Task Heads
+  - OONC (Open Or Ntab Click): weight 0.9
+  - Engagement: weight 0.1
+  ↓
+Output: Cumulative product of sigmoids
+  final_score = cumprod(sigmoid(logits))</code></pre>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Input Features</span>
+                        <span class="info-value">~250</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Dense Units</span>
+                        <span class="info-value">1024→128</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Embedding Dim</span>
+                        <span class="info-value">50</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tasks</span>
+                        <span class="info-value">2 (OONC, Engagement)</span>
+                    </div>
+                </div>
+
+                <h3>Training Configuration</h3>
+                <ul>
+                    <li><strong>Loss:</strong> Binary cross-entropy with sigmoid</li>
+                    <li><strong>Optimizer:</strong> Gradient Descent with learning rate scheduling</li>
+                    <li><strong>Metric:</strong> PR-AUC (Precision-Recall Area Under Curve)</li>
+                    <li><strong>Early Stopping:</strong> Based on pr_auc_unweighted_OONC</li>
+                    <li><strong>Task Weights:</strong> OONC=0.9, Engagement=0.1</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚡ Light Ranker Model</h2>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-name">MLP with DeepNorm</span>
+                    <span class="model-badge neural">NEURAL NETWORK</span>
+                </div>
+
+                <div class="file-ref">
+                    📁 /pushservice/src/main/python/models/light_ranking/model_pools_mlp.py
+                </div>
+
+                <h3>Purpose</h3>
+                <p>Fast pre-filtering to reduce candidates from ~4,000 to ~1,000 before heavy ranking.</p>
+
+                <h3>Architecture</h3>
+                <ul>
+                    <li>Multi-layer perceptron with self-attention</li>
+                    <li>Dense features: continuous with z-score normalization</li>
+                    <li>Sparse features: embedded via full sparse layers</li>
+                    <li>Missing value sub-branch for robustness</li>
+                    <li>LeakyReLU activation functions</li>
+                </ul>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Latency</span>
+                        <span class="info-value">~20-50ms</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Features</span>
+                        <span class="info-value">~100-150</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Purpose</span>
+                        <span class="info-value">Pre-filtering</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🌐 SimClusters Embeddings</h2>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-name">Community Detection</span>
+                    <span class="model-badge embedding">SPARSE EMBEDDING</span>
+                </div>
+
+                <div class="file-ref">
+                    📁 /src/scala/com/twitter/simclusters_v2/<br>
+                    📁 /simclusters-ann/
+                </div>
+
+                <h3>Overview</h3>
+                <p>Sparse, interpretable embeddings representing Twitter communities. 145,000 communities covering 20M+ producers.</p>
+
+                <h3>Key Matrices</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Matrix</th>
+                            <th>Dimensions</th>
+                            <th>Description</th>
+                            <th>Update Frequency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>KnownFor (V)</strong></td>
+                            <td>Producers × Communities</td>
+                            <td>Which communities producers belong to</td>
+                            <td>Daily</td>
+                        </tr>
+                        <tr>
+                            <td><strong>InterestedIn (U)</strong></td>
+                            <td>Users × Communities</td>
+                            <td>Which communities users are interested in</td>
+                            <td>Daily</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tweet Embeddings</strong></td>
+                            <td>Tweets × Communities</td>
+                            <td>Tweet community affiliation (from favorites)</td>
+                            <td>Real-time</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Topic Embeddings</strong></td>
+                            <td>Topics × Communities</td>
+                            <td>Topic-community relationships</td>
+                            <td>Daily</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Computation Pipeline</h3>
+                <pre><code>Step 1: Community Detection (Scalding Job)
+  - Read user follow graph
+  - Compute producer-producer similarity
+  - Run Metropolis-Hastings sampling
+  - Output: KnownFor matrix (top 100 communities per producer)
+
+Step 2: InterestedIn Calculation
+  - For each user: aggregate followed producers' KnownFor
+  - Weight by follow recency and engagement
+  - Output: InterestedIn matrix (top 100 communities per user)
+
+Step 3: Tweet Embedding (Real-time)
+  - Monitor favorite events via Kafka
+  - Aggregate favoriters' InterestedIn vectors
+  - Update tweet embedding incrementally
+  - Output: Tweet → Communities mapping
+
+Step 4: Representation Manager
+  - Serve embeddings online via RMS
+  - Cache in Manhattan/Memcached
+  - Query interface for downstream services</code></pre>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Communities</span>
+                        <span class="info-value">145,000</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Producers Covered</span>
+                        <span class="info-value">20M+</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Top-K per Entity</span>
+                        <span class="info-value">50-100</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Embedding Type</span>
+                        <span class="info-value">Sparse</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔗 Real Graph Model</h2>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-name">User Interaction Prediction</span>
+                    <span class="model-badge boosting">GRADIENT BOOSTING</span>
+                </div>
+
+                <div class="file-ref">
+                    📁 /src/scala/com/twitter/interaction_graph/
+                </div>
+
+                <h3>Purpose</h3>
+                <p>Predicts probability of user-to-user interaction (follows, mentions, engagement likelihood).</p>
+
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>Follow Scores:</strong> L2-normalized by follower count</li>
+                    <li><strong>Favorite Scores:</strong> Half-life decay (100 days), log-normalized</li>
+                    <li><strong>Engagement Counts:</strong> Follower count, faver count</li>
+                    <li><strong>Temporal:</strong> Recency-weighted interactions</li>
+                </ul>
+
+                <h3>Data Structure</h3>
+                <pre><code>struct NeighborWithWeights {
+  neighborId: i64
+  isFollowed: bool
+  followScoreNormalizedByNeighborFollowersL2: double
+  favScoreHalfLife100Days: double
+  logFavScore: double
+  logFavScoreL2Normalized: double
+}
+
+struct NormsAndCounts {
+  userId: i64
+  followerL2Norm: double
+  faverL2Norm: double
+  followerCount: i64
+  faverCount: i64
+}</code></pre>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Model Type</span>
+                        <span class="info-value">Gradient Boosting</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Update Frequency</span>
+                        <span class="info-value">Daily batch</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Output</span>
+                        <span class="info-value">User similarity scores</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Feature Engineering Pipeline</h2>
+
+            <h3>Feature Categories (6,000+ Total)</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Count</th>
+                        <th>Examples</th>
+                        <th>Processing</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Author Features</strong></td>
+                        <td>~500</td>
+                        <td>Follower count, verification, reputation, abuse strikes</td>
+                        <td>Batch normalization</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Content Features</strong></td>
+                        <td>~1,000</td>
+                        <td>Text embeddings, entities, media, language, length</td>
+                        <td>Transformer encodings</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Engagement Features</strong></td>
+                        <td>~300</td>
+                        <td>Like/RT/reply counts, velocity, age-adjusted</td>
+                        <td>Log transform + clipping</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Graph Features</strong></td>
+                        <td>~800</td>
+                        <td>Real Graph scores, social connections, intersection counts</td>
+                        <td>L2 normalization</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Embedding Features</strong></td>
+                        <td>~2,000</td>
+                        <td>SimClusters (sparse), TwHIN (dense), Transformer</td>
+                        <td>Dot products, cosine sim</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Temporal Features</strong></td>
+                        <td>~200</td>
+                        <td>Tweet age, hour of day, day of week, recency</td>
+                        <td>Cyclical encoding</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Real-time Aggregates</strong></td>
+                        <td>~600</td>
+                        <td>Hourly engagement stats, trending scores</td>
+                        <td>Windowed aggregation</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Safety Features</strong></td>
+                        <td>~600</td>
+                        <td>NSFW scores, spam scores, toxicity, abuse</td>
+                        <td>Multi-model ensemble</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Feature Processing Methods</h3>
+
+            <div class="highlight-box">
+                <h4>Continuous Features</h4>
+                <pre><code>1. Filter NaN and Infinity values
+2. Sign-magnitude log transform: sign(x) × log(|x| + 1)
+3. Batch normalization (momentum=0.9999, renormalization)
+4. Clip to range [-5, 5]</code></pre>
+            </div>
+
+            <div class="highlight-box">
+                <h4>Sparse Features</h4>
+                <pre><code>1. Hash to fixed bit space (18 bits = 262,144 dimensions)
+2. Full sparse embedding layer
+3. Z-score normalization for sparse continuous features
+4. Embedding size: typically 50 dimensions</code></pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 Model Serving: Navi</h2>
+
+            <div class="model-card">
+                <div class="model-header">
+                    <span class="model-name">High-Performance ML Serving</span>
+                    <span class="model-badge neural">RUST</span>
+                </div>
+
+                <div class="file-ref">
+                    📁 /navi/
+                </div>
+
+                <h3>Architecture</h3>
+                <ul>
+                    <li><strong>Language:</strong> Rust for high performance</li>
+                    <li><strong>API:</strong> gRPC compatible with TensorFlow Serving</li>
+                    <li><strong>Plugin System:</strong> TensorFlow (mature), ONNX, PyTorch (experimental)</li>
+                    <li><strong>Batch Inference:</strong> Processes multiple candidates simultaneously</li>
+                </ul>
+
+                <h3>Workflow</h3>
+                <pre><code>1. Feature Hydration
+   Features → DataRecord format conversion
+
+2. Batch Preparation
+   Group candidates for efficient GPU utilization
+
+3. Model Inference
+   Navi gRPC → TensorFlow/ONNX runtime
+
+4. Score Extraction
+   Parse predictions → Feature maps
+
+5. Return to Ranker
+   15 engagement probabilities per candidate</code></pre>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Latency</span>
+                        <span class="info-value">50-100ms</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Batch Size</span>
+                        <span class="info-value">100-500</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Throughput</span>
+                        <span class="info-value">High (GPU)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎓 Key Insights</h2>
+
+            <div class="highlight-box">
+                <h3 style="color: #1da1f2;">Why This ML Architecture Works</h3>
+                <ul>
+                    <li><strong>Multi-Task Learning:</strong> Single model predicts 15 signals → shared representations</li>
+                    <li><strong>Hybrid Embeddings:</strong> Sparse (SimClusters) + Dense (TwHIN) capture different aspects</li>
+                    <li><strong>Feature Richness:</strong> 6,000 features ensure comprehensive signal capture</li>
+                    <li><strong>Real-time + Batch:</strong> Fresh data (hourly aggregates) + stable patterns (SimClusters)</li>
+                    <li><strong>Interpretability:</strong> SimClusters provide human-understandable communities</li>
+                    <li><strong>Performance:</strong> Navi (Rust) + GPU acceleration for low latency at scale</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; color: #8899a6; border-top: 1px solid #38444d;">
+            <p><a href="index.html" style="color: #1da1f2;">← Back to Overview</a></p>
+            <p style="margin-top: 15px;">Twitter Algorithm Architecture Documentation</p>
+        </footer>
+    </div>
+</body>
+</html>
