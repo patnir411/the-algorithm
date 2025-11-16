@@ -1,0 +1,25 @@
+# Personal Algorithm Analyzer Dependencies
+
+# Core data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Visualization
+plotly>=5.14.0
+dash>=2.11.0
+
+# Text analysis (optional, for future enhancements)
+# nltk>=3.8
+# spacy>=3.5.0
+
+# Network analysis (for relationship graphs)
+networkx>=3.1
+
+# Date/time utilities
+python-dateutil>=2.8.2
+
+# JSON handling (built-in, listed for reference)
+# json (standard library)
+# re (standard library)
+# datetime (standard library)
+# collections (standard library)
