@@ -168,7 +168,117 @@ python analyze.py
 # 4. View interactive dashboard
 python dashboard.py
 # Open http://localhost:8050
+
+# 5. Get AI-powered deep insights (optional)
+export GEMINI_API_KEY='your-gemini-api-key'
+python gemini_insights.py
 ```
+
+---
+
+## 🧠 AI-Powered Deep Insights (Gemini 2.5 Pro)
+
+After running the basic analysis, you can get **personalized, expert-level insights** using Google's Gemini 2.5 Pro with deep thinking mode.
+
+### What Gemini Provides
+
+Unlike the basic metrics, Gemini acts as your **personal psychologist + behavioral scientist**, analyzing your patterns to provide:
+
+1. **Behavioral Pattern Analysis** - What your metrics reveal about your psychology
+2. **Red Flags & Concerns** - Unhealthy patterns and algorithmic exploitation
+3. **Strengths & Positive Patterns** - What you're doing right
+4. **Root Cause Hypothesis** - Why you use X the way you do (validation? procrastination? belonging?)
+5. **Personalized Recommendations** - 5-7 specific interventions tailored to YOUR data
+6. **30-Day Transformation Plan** - Week-by-week concrete action plan
+7. **Deeper Questions** - What to reflect on about your usage
+
+### Setup
+
+1. **Get Gemini API Key** (free tier available):
+   ```bash
+   # Visit: https://aistudio.google.com/apikey
+   export GEMINI_API_KEY='your-api-key-here'
+   ```
+
+2. **Run the analysis first**:
+   ```bash
+   python analyze.py  # Generate analysis_results.json
+   ```
+
+3. **Optional: Add personal context** for deeper insights:
+   ```bash
+   cp personal_notes.template.txt personal_notes.txt
+   # Edit personal_notes.txt with your situation, goals, struggles
+   ```
+
+4. **Generate insights**:
+   ```bash
+   python gemini_insights.py
+   # Streams analysis to console and saves to gemini_insights.txt
+   ```
+
+### Personal Context Template
+
+The more context you provide, the more personalized the insights:
+
+```txt
+## YOUR CURRENT SITUATION
+I'm a remote software engineer. Lonely during the day. X is my "water cooler".
+
+## YOUR GOALS
+Launch my own product in 6 months. Need deep focus time.
+
+## YOUR STRUGGLES
+I refresh X constantly when stuck on hard problems. Losing ability to think deeply.
+
+## SPECIFIC QUESTIONS
+Why do I keep checking even when I have work to do? How to use X intentionally?
+```
+
+### Example Output
+
+```
+🌟 GEMINI 2.5 PRO DEEP ANALYSIS
+═══════════════════════════════════════════════════════════════════
+
+## BEHAVIORAL PATTERN ANALYSIS
+
+Your metrics paint a picture of someone caught in the "productive procrastination"
+trap. Your Creation:Consumption ratio of 0.87 is revealing - you're consuming
+significantly more than creating, yet you likely feel like you're "learning" or
+"staying informed." This is the algorithm's most sophisticated deception...
+
+[Continues with deep analysis based on YOUR specific data]
+
+## PERSONALIZED RECOMMENDATIONS
+
+1. **Hard Stop Protocol**: Given your 34% late-night usage and 47-min average
+   sessions, implement a physical phone lockbox at 10pm. Not willpower -
+   environmental design.
+
+2. **Creation Sprints**: Every morning, write ONE original tweet before you're
+   allowed to scroll. This rewires the creation:consumption ratio...
+
+[5-7 specific recommendations based on your patterns]
+
+## 30-DAY TRANSFORMATION PLAN
+
+Week 1: Awareness Phase
+- Track every X session in a note
+- Notice triggers (stuck on problem? anxious? bored?)
+- Goal: Just observe, don't change yet
+
+Week 2: Environmental Design
+...
+```
+
+### Why Gemini?
+
+- **Deep Thinking Mode**: Uses unlimited compute to really understand your patterns
+- **Personalized**: References YOUR specific metrics, not generic advice
+- **Expert-Level**: Combines psychology, behavioral science, digital wellness
+- **Actionable**: Concrete plans, not vague suggestions
+- **Private**: All processing through Google's API, but you control what you share
 
 ---
 
@@ -243,13 +353,15 @@ This tool reverses the algorithm's logic:
 
 ## Future Enhancements
 
-- [ ] GPT-powered content quality analysis
-- [ ] Sentiment analysis for regret detection
-- [ ] Predictive model: "Will I regret this tweet?"
-- [ ] Accountability features: Weekly report card
-- [ ] Goal setting: "Create 3 original tweets/week"
-- [ ] Integration with time-tracking apps
-- [ ] Export to personal knowledge base
+- [x] **Gemini 2.5 Pro AI insights** - Deep personalized analysis with thinking mode
+- [ ] Sentiment analysis for regret detection (enhanced version)
+- [ ] Predictive model: "Will I regret this tweet?" (real-time warning)
+- [ ] Accountability features: Weekly report card via email
+- [ ] Goal setting: "Create 3 original tweets/week" with tracking
+- [ ] Integration with time-tracking apps (RescueTime, etc.)
+- [ ] Export to personal knowledge base (Obsidian, Notion)
+- [ ] Browser extension for real-time flourishing score
+- [ ] Comparison mode: Your metrics vs optimal patterns
 
 ---
 
@@ -258,8 +370,9 @@ This tool reverses the algorithm's logic:
 - **Python 3.9+**: Core analysis
 - **Pandas**: Data processing
 - **Plotly/Dash**: Interactive dashboard
-- **NLTK/spaCy**: Text analysis (optional)
+- **Google Gemini 2.5 Pro**: AI-powered insights with deep thinking
 - **NetworkX**: Relationship graphs
+- **NLTK/spaCy**: Text analysis (optional)
 
 ---
 

@@ -1,0 +1,69 @@
+# Personal Context for Gemini Analysis
+# Copy this to personal_notes.txt and fill it out for deeper, more personalized insights
+
+## YOUR CURRENT SITUATION
+# What's happening in your life right now? Work, relationships, stress levels, major changes?
+
+
+
+
+## YOUR GOALS
+# What do you want to achieve? Career, personal growth, relationships, creative projects?
+
+
+
+
+## YOUR STRUGGLES
+# What are you finding difficult? What patterns do you want to change?
+
+
+
+
+## YOUR RELATIONSHIP WITH X/TWITTER
+# How do you feel about your usage? What role does it play in your life?
+
+
+
+
+## SPECIFIC QUESTIONS OR CONCERNS
+# What do you want to understand better about your behavior?
+
+
+
+
+## WHAT YOU'VE TRIED
+# Have you tried to change your usage before? What worked or didn't work?
+
+
+
+
+## YOUR VALUES
+# What's most important to you? What kind of person do you want to be?
+
+
+
+
+## ADDITIONAL CONTEXT
+# Anything else relevant? Mental health, ADHD, work requirements, etc.
+
+
+
+
+---
+
+EXAMPLE:
+
+## YOUR CURRENT SITUATION
+I'm a software engineer working remotely. Often lonely during the day. Using X as my "water cooler" for social connection.
+
+## YOUR GOALS
+Want to launch my own product in the next 6 months. Need deep focus time.
+
+## YOUR STRUGGLES
+I find myself refreshing X constantly when stuck on hard problems. It's become a procrastination tool. I feel like I'm losing my ability to think deeply.
+
+## YOUR RELATIONSHIP WITH X/TWITTER
+Love the tech community and learning. Hate how it fragments my attention. Feel FOMO when I try to quit.
+
+## SPECIFIC QUESTIONS OR CONCERNS
+Why do I keep checking even when I know I have work to do? How can I use X intentionally instead of compulsively?

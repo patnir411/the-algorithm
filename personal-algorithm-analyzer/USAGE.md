@@ -277,15 +277,120 @@ python analyze.py --compare-to-goals
 
 ---
 
+## 🧠 AI-Powered Insights (Gemini 2.5 Pro)
+
+After running the basic analysis, get **deep personalized insights** from an AI psychologist.
+
+### Setup Gemini
+
+```bash
+# 1. Get free API key: https://aistudio.google.com/apikey
+export GEMINI_API_KEY='your-api-key-here'
+
+# 2. Install Gemini SDK
+pip install google-genai
+
+# 3. (Optional) Add personal context for deeper insights
+cp personal_notes.template.txt personal_notes.txt
+# Edit with your situation, goals, struggles
+```
+
+### Run Gemini Analysis
+
+```bash
+python gemini_insights.py
+```
+
+This will:
+1. Load your `analysis_results.json`
+2. Load your `personal_notes.txt` (if exists)
+3. Send to Gemini 2.5 Pro with **deep thinking mode** (-1 thinking budget = unlimited)
+4. Stream personalized insights to your terminal
+5. Save full analysis to `gemini_insights.txt`
+
+### What You Get
+
+**7 comprehensive sections:**
+
+1. **Behavioral Pattern Analysis** - What your metrics reveal about your psychology
+   - "Your 0.87 ratio suggests productive procrastination trap..."
+
+2. **Red Flags & Concerns** - Specific unhealthy patterns
+   - "34% late-night usage indicates sleep displacement..."
+
+3. **Strengths & Positive Patterns** - What you're doing well
+   - "68/100 relationship quality shows you build real connections..."
+
+4. **Root Cause Hypothesis** - Why you use X this way
+   - "Seeking intellectual stimulation + belonging + validation..."
+
+5. **Personalized Recommendations** - 5-7 specific actions
+   - "Hard stop protocol: Physical phone lockbox at 10pm..."
+   - "Creation sprints: 1 original tweet before scrolling..."
+
+6. **30-Day Transformation Plan** - Week-by-week concrete steps
+   ```
+   Week 1: Awareness (just observe)
+   Week 2: Environmental design (lockbox, app limits)
+   Week 3: Creation habits (morning tweets)
+   Week 4: Relationship depth (DM 3 people)
+   ```
+
+7. **Deeper Questions** - Self-reflection prompts
+   - "What need is X fulfilling that's unmet elsewhere?"
+
+### Personal Context Example
+
+The more context in `personal_notes.txt`, the better the insights:
+
+```txt
+## YOUR CURRENT SITUATION
+Remote software engineer. Using X as virtual office/water cooler.
+Sometimes lonely. WFH for 2 years.
+
+## YOUR GOALS
+- Launch side project in 6 months
+- Need 3-hour deep work blocks daily
+- Build real friendships, not just online connections
+
+## YOUR STRUGGLES
+- Refresh X when stuck on hard problems (procrastination)
+- Feel FOMO when I try to quit
+- Late-night scrolling ruins sleep
+
+## SPECIFIC QUESTIONS
+- Why do I check even when I KNOW I have work to do?
+- How to use X intentionally vs compulsively?
+- Is my usage replacing real relationships?
+```
+
+Gemini will reference these specifics in its analysis, making recommendations **tailored to YOUR life**, not generic advice.
+
+### Why Gemini?
+
+| Basic Analysis | Gemini Insights |
+|----------------|-----------------|
+| Numbers & scores | Psychological interpretation |
+| What happened | Why it happened |
+| Generic buckets | Personal patterns |
+| "Regret score: 34" | "Your late-night doom scrolling correlates with work stress..." |
+| Recommendations | Root cause → personalized intervention |
+
+**Gemini uses unlimited thinking** (-1 budget) to deeply analyze your patterns before responding. You'll see thoughtful, expert-level analysis combining psychology, behavioral science, and digital wellness.
+
+---
+
 ## Privacy & Data
 
-**All analysis happens locally.** Your data never leaves your machine.
+**Basic analysis happens 100% locally.** Your data never leaves your machine.
 
 - Data is read from `data/` folder
 - Results saved to `analysis_results.json`
 - No network requests
 - No third-party services
 - Open source - inspect the code yourself
+
+**Gemini insights (optional):** If you use `gemini_insights.py`, your analysis metrics and personal notes are sent to Google's Gemini API. Your raw X data (tweets.js, etc.) is NOT sent - only the computed metrics. You control what personal context to share via `personal_notes.txt`.
 
 ---
 
