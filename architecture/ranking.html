@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking & Scoring - Twitter Algorithm</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #15202b;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+        }
+
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { color: #1da1f2; margin: 30px 0 20px 0; font-size: 2em; }
+        h3 { color: #1da1f2; margin: 20px 0 15px 0; }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #ffffff;
+            text-decoration: none;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: #192734;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border-left: 5px solid #1da1f2;
+        }
+
+        .signal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .signal-card {
+            background: #15202b;
+            border: 2px solid #38444d;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .signal-card:hover {
+            border-color: #1da1f2;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(29, 161, 242, 0.2);
+        }
+
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .signal-name {
+            color: #1da1f2;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .signal-tier {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .tier-1 { background: #17bf63; color: white; }
+        .tier-2 { background: #1da1f2; color: white; }
+        .tier-3 { background: #794bc4; color: white; }
+        .tier-4 { background: #ffad1f; color: white; }
+        .tier-negative { background: #f91880; color: white; }
+
+        .signal-description {
+            color: #8899a6;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .signal-details {
+            display: flex;
+            gap: 15px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #38444d;
+        }
+
+        .detail-item {
+            flex: 1;
+        }
+
+        .detail-label {
+            color: #8899a6;
+            font-size: 0.8em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        code {
+            background: #15202b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #1da1f2;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            border: 1px solid #38444d;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #8899a6;
+        }
+
+        .formula-box {
+            background: #0d1117;
+            border: 2px solid #1da1f2;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .formula-box h3 {
+            color: #17bf63;
+            margin-bottom: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .formula {
+            font-size: 1.2em;
+            color: #ffffff;
+            margin: 15px 0;
+            line-height: 2;
+        }
+
+        .formula .var {
+            color: #1da1f2;
+        }
+
+        .formula .op {
+            color: #17bf63;
+        }
+
+        .formula .comment {
+            color: #8899a6;
+            font-size: 0.85em;
+            display: block;
+            margin-top: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #38444d;
+        }
+
+        th {
+            background: #1da1f2;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: rgba(29, 161, 242, 0.05);
+        }
+
+        .highlight-box {
+            background: rgba(29, 161, 242, 0.1);
+            border-left: 4px solid #1da1f2;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+
+        .warning-box {
+            background: rgba(255, 173, 31, 0.1);
+            border-left: 4px solid #ffad1f;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+
+        .file-ref {
+            background: #15202b;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 3px solid #17bf63;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #17bf63;
+        }
+
+        .weight-range {
+            background: #192734;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .range-bar {
+            height: 40px;
+            background: linear-gradient(90deg, #f91880 0%, #8899a6 50%, #17bf63 100%);
+            border-radius: 8px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .range-label {
+            position: absolute;
+            top: -25px;
+            font-size: 0.85em;
+            color: #8899a6;
+        }
+
+        .range-label.min { left: 0; }
+        .range-label.center { left: 50%; transform: translateX(-50%); }
+        .range-label.max { right: 0; }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .stat-box {
+            background: #15202b;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #38444d;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            color: #1da1f2;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #8899a6;
+            font-size: 0.9em;
+        }
+
+        .flow-diagram {
+            background: #0d1117;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 25px 0;
+        }
+
+        .flow-step {
+            background: #192734;
+            border: 2px solid #1da1f2;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .flow-step h4 {
+            color: #1da1f2;
+            margin-bottom: 12px;
+        }
+
+        .flow-arrow {
+            text-align: center;
+            color: #1da1f2;
+            font-size: 2em;
+            margin: 10px 0;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+            color: #8899a6;
+        }
+
+        ul li, ol li {
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+
+        strong { color: #ffffff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>📈 Ranking & Scoring System</h1>
+            <p>Deep dive into engagement signals, weights, and score aggregation</p>
+        </header>
+
+        <div class="section">
+            <h2>🎯 The 15 Engagement Signals</h2>
+            <p>Twitter's ranking model predicts <strong>15 different types of user engagement</strong>. Each signal represents a probability (0.0 to 1.0) that a user will perform that action with the tweet.</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/server/src/main/scala/com/twitter/home_mixer/model/PredictedScoreFeature.scala
+            </div>
+
+            <div class="signal-grid">
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">1. Favorite (Like)</span>
+                        <span class="signal-tier tier-1">TIER 1</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability the user will like/favorite the tweet. The most common engagement signal.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedFavoriteScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">FavParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">2. Retweet</span>
+                        <span class="signal-tier tier-1">TIER 1</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability the user will retweet or quote tweet. Includes both regular retweets and quote tweets with commentary.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedRetweetScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">RetweetParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">3. Reply</span>
+                        <span class="signal-tier tier-1">TIER 1</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability the user will reply to the tweet. Indicates strong engagement and conversation potential.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedReplyScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">ReplyParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">4. Reply Engaged By Author</span>
+                        <span class="signal-tier tier-3">TIER 3</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability that if the user replies, the original tweet author will engage with that reply. Measures conversation quality.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedReplyEngagedByAuthorScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">ReplyEngagedByAuthorParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">5. Bookmark</span>
+                        <span class="signal-tier tier-2">TIER 2</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability the user will bookmark/save the tweet for later. Indicates high-value content.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedBookmarkScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">BookmarkParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">6. Share</span>
+                        <span class="signal-tier tier-2">TIER 2</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability the user will share the tweet (copy link, DM, or native share). Strong virality indicator.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedShareScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">ShareParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">7. Good Click (Engagement)</span>
+                        <span class="signal-tier tier-3">TIER 3</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability of a "good" click: tweet detail view, photo expansion, or conversation thread click that leads to engagement.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedGoodClickConvoDescFavoritedOrRepliedScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">GoodClickParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">8. Good Click with Dwell</span>
+                        <span class="signal-tier tier-3">TIER 3</span>
+                    </div>
+                    <div class="signal-description">
+                        Click followed by meaningful dwell time (UAM > 2 seconds). Indicates content quality and user interest.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedGoodClickConvoDescUamGt2Score</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">GoodClickUamGt2Param</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">9. Good Profile Click</span>
+                        <span class="signal-tier tier-3">TIER 3</span>
+                    </div>
+                    <div class="signal-description">
+                        Profile click that results in engagement. Measures author discovery and follow potential.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedGoodProfileClickScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">GoodProfileClickParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">10. Dwell Time</span>
+                        <span class="signal-tier tier-1">TIER 1</span>
+                    </div>
+                    <div class="signal-description">
+                        Predicted time user will spend viewing the tweet. Normalized dwell time indicates content engagement.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedDwellScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">DwellParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">11. Video Quality View</span>
+                        <span class="signal-tier tier-4">TIER 4</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability user will watch video for ≥10 seconds. Only applicable to video tweets ≥10s duration.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedVideoQualityViewScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">VideoViewParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">12. Video Quality View Immersive</span>
+                        <span class="signal-tier tier-4">TIER 4</span>
+                    </div>
+                    <div class="signal-description">
+                        Video quality view in immersive/fullscreen mode. Higher engagement than standard video view.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedVideoQualityViewImmersiveScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">VideoViewImmersiveParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">13. Video Watch Time</span>
+                        <span class="signal-tier tier-4">TIER 4</span>
+                    </div>
+                    <div class="signal-description">
+                        Predicted total watch time in milliseconds. Aggregated metric for video engagement quality.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedVideoWatchTimeScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">VideoWatchTimeParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">14. Video Quality Watch</span>
+                        <span class="signal-tier tier-4">TIER 4</span>
+                    </div>
+                    <div class="signal-description">
+                        Combined metric for high-quality video watchtime. Considers both duration and completion rate.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedVideoQualityWatchScore</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">VideoQualityWatchParam</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <span class="signal-name">15. Negative Feedback</span>
+                        <span class="signal-tier tier-negative">NEGATIVE</span>
+                    </div>
+                    <div class="signal-description">
+                        Probability of negative actions: "Not interested", "Block author", "Mute author", or "Report tweet". Used to suppress low-quality content.
+                    </div>
+                    <div class="signal-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Feature</span>
+                            <span class="detail-value">PredictedNegativeFeedbackV2Score</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Weight Param</span>
+                            <span class="detail-value">NegativeFeedbackV2Param</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚖️ Weight Parameter System</h2>
+
+            <p>Each engagement signal has a <strong>dynamically adjustable weight</strong> controlled via feature switches. This enables A/B testing and real-time optimization without model retraining.</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/server/src/main/scala/com/twitter/home_mixer/param/HomeGlobalParams.scala
+            </div>
+
+            <div class="weight-range">
+                <h3>Weight Range Configuration</h3>
+                <div class="range-bar">
+                    <span class="range-label min">-10,000</span>
+                    <span class="range-label center">0</span>
+                    <span class="range-label max">+10,000</span>
+                </div>
+                <p style="margin-top: 50px; color: #8899a6;">
+                    <strong>Negative weights:</strong> Suppress tweets with high probability<br>
+                    <strong>Zero weight:</strong> Ignore signal completely<br>
+                    <strong>Positive weights:</strong> Boost tweets with high probability
+                </p>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <span class="stat-value">15</span>
+                    <span class="stat-label">Independent Weight Parameters</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value">Dynamic</span>
+                    <span class="stat-label">Adjustable via Feature Switches</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value">±10,000</span>
+                    <span class="stat-label">Weight Range</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value">0.001</span>
+                    <span class="stat-label">Epsilon (precision adjustment)</span>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <strong>🔑 Key Insight:</strong> Weights are NOT fixed in the model. They're external parameters that can be modified in real-time. This allows Twitter to:
+                <ul style="margin-top: 15px;">
+                    <li>Run A/B tests on different weight configurations</li>
+                    <li>Adjust ranking behavior without retraining models</li>
+                    <li>Personalize weights per user segment or context</li>
+                    <li>Rapidly respond to quality issues by adjusting weights</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧮 Score Aggregation Algorithm</h2>
+
+            <p>The final score for each tweet is computed through a sophisticated multi-step process:</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/server/src/main/scala/com/twitter/home_mixer/util/RerankerUtil.scala<br>
+                📁 /home-mixer/server/src/main/scala/com/twitter/home_mixer/functional_component/scorer/WeighedModelRerankingScorer.scala
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-step">
+                    <h4>Step 1: Per-Head Max Normalization</h4>
+                    <pre><code>For each engagement signal i (1 to 15):
+  max_score_i = max(score_i across all candidates)
+
+For each candidate c and signal i:
+  normalized_score_c,i = score_c,i / max_score_i</code></pre>
+                    <p style="margin-top: 15px; color: #8899a6;">
+                        <strong>Purpose:</strong> Prevents a single high-scoring signal from dominating the final score. Each signal is scaled to a 0-1 range relative to the best candidate for that signal.
+                    </p>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-step">
+                    <h4>Step 2: Apply Weights</h4>
+                    <pre><code>For each candidate c and signal i:
+  if weight_i >= 0 OR useWeightForNeg:
+    weighted_score_c,i = normalized_score_c,i × weight_i
+  else:
+    // Special negative signal handling
+    if (normalized_score_c,i > negThresholdNormalized) OR
+       (score_c,i > negThresholdConstant):
+      weighted_score_c,i = weight_i  // Full negative weight
+    else:
+      weighted_score_c,i = 0  // Ignore below threshold</code></pre>
+                    <p style="margin-top: 15px; color: #8899a6;">
+                        <strong>Purpose:</strong> Negative signals (like Negative Feedback) have threshold-based application to avoid over-suppression.
+                    </p>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-step">
+                    <h4>Step 3: Aggregate Weighted Scores</h4>
+                    <pre><code>For each candidate c:
+  combined_score_c = Σ(weighted_score_c,i for i=1 to 15)</code></pre>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-step">
+                    <h4>Step 4: Normalize by Total Weights</h4>
+                    <pre><code>positive_weight_sum = Σ(weight_i where weight_i > 0)
+negative_weight_sum = |Σ(weight_i where weight_i < 0)|
+total_weight_sum = positive_weight_sum + negative_weight_sum
+
+For each candidate c:
+  if total_weight_sum == 0:
+    final_score_c = max(combined_score_c, 0)
+  else if combined_score_c < 0:
+    final_score_c = (combined_score_c + negative_weight_sum) / total_weight_sum × ε
+  else:
+    final_score_c = combined_score_c + ε
+
+where ε = 0.001 (epsilon for precision)</code></pre>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-step">
+                    <h4>Step 5: Sort Candidates</h4>
+                    <pre><code>ranked_candidates = sort(candidates by final_score_c, descending)</code></pre>
+                    <p style="margin-top: 15px; color: #8899a6;">
+                        <strong>Output:</strong> Candidates ranked by predicted engagement likelihood
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎭 Contextual Ranking Variations</h2>
+
+            <p>The ranking algorithm adapts based on multiple contextual factors:</p>
+
+            <div class="subsection" style="background: #15202b; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                <h3>1. Video-Specific Logic</h3>
+                <ul>
+                    <li><strong>10-Second Threshold:</strong> Video Quality View only applies if video ≥10 seconds</li>
+                    <li><strong>Dwell Exclusion:</strong> Dwell metric excluded for eligible video tweets</li>
+                    <li><strong>Immersive Mode:</strong> Different scoring for fullscreen video viewing</li>
+                    <li><strong>Binary Scheme:</strong> Optional constant value instead of probability for VQV</li>
+                </ul>
+            </div>
+
+            <div class="subsection" style="background: #15202b; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                <h3>2. In-Network vs Out-of-Network</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Aspect</th>
+                            <th>In-Network (Following)</th>
+                            <th>Out-of-Network (Discovery)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Primary Source</strong></td>
+                            <td>Earlybird Search Index</td>
+                            <td>UTEG, SimClusters, Real Graph</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Social Proof</strong></td>
+                            <td>Not required</td>
+                            <td>"Liked by [connections]"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Scoring</strong></td>
+                            <td>Earlybird model scores</td>
+                            <td>Real Graph × 1.0 + Earlybird × multiplier</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Trust Level</strong></td>
+                            <td>Higher (followed authors)</td>
+                            <td>Lower (requires more signals)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subsection" style="background: #15202b; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                <h3>3. Device & User Context</h3>
+                <ul>
+                    <li><strong>Device Type:</strong> Different thresholds for mobile vs desktop</li>
+                    <li><strong>User Preferences:</strong> Video preferences affect VQV weighting</li>
+                    <li><strong>Premium Status:</strong> May affect content diversity ratios</li>
+                    <li><strong>Feedback History:</strong> 14-day window for "See Fewer" fatigue</li>
+                </ul>
+            </div>
+
+            <div class="subsection" style="background: #15202b; padding: 25px; border-radius: 8px; margin: 20px 0;">
+                <h3>4. Temporal Context</h3>
+                <ul>
+                    <li><strong>Time Decay:</strong> Controlled via <code>RequestRankDecayFactorParam</code> (default 0.95)</li>
+                    <li><strong>Recency Bias:</strong> Recent tweets boosted in Earlybird scoring</li>
+                    <li><strong>Real-time Aggregates:</strong> Hourly engagement stats influence scoring</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔀 Alternative Scoring: Phoenix Model</h2>
+
+            <p>Twitter also has an alternative ranking system called <strong>Phoenix</strong> that uses different action mappings.</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/functional_component/scorer/PhoenixModelRerankingScorer.scala
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phoenix Action</th>
+                        <th>Mapped Engagement</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>SERVER_TWEET_FAV</code></td>
+                        <td>Favorite</td>
+                        <td>Like action</td>
+                    </tr>
+                    <tr>
+                        <td><code>SERVER_TWEET_REPLY</code></td>
+                        <td>Reply</td>
+                        <td>Reply action</td>
+                    </tr>
+                    <tr>
+                        <td><code>SERVER_TWEET_RETWEET</code></td>
+                        <td>Retweet/Quote</td>
+                        <td>Amplification action</td>
+                    </tr>
+                    <tr>
+                        <td><code>CLIENT_TWEET_PHOTO_EXPAND</code></td>
+                        <td>Click Engagement</td>
+                        <td>Photo/media click</td>
+                    </tr>
+                    <tr>
+                        <td><code>CLIENT_TWEET_VIDEO_QUALITY_VIEW</code></td>
+                        <td>Video View</td>
+                        <td>Quality video watch</td>
+                    </tr>
+                    <tr>
+                        <td><code>CLIENT_TWEET_BOOKMARK</code></td>
+                        <td>Bookmark</td>
+                        <td>Save for later</td>
+                    </tr>
+                    <tr>
+                        <td><code>CLIENT_TWEET_SHARE_*</code></td>
+                        <td>Share</td>
+                        <td>Multiple share types</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning-box">
+                <strong>⚠️ Phoenix vs Production:</strong> Phoenix can use production model scores as fallback via <code>UseProdInPhoenixParams</code>. This hybrid approach enables gradual migration and A/B testing between scoring systems.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Score Aggregation Example</h2>
+
+            <div class="formula-box">
+                <h3>Example: Calculating Final Score for Tweet A</h3>
+
+                <div class="formula">
+                    <strong>Given ML Predictions:</strong><br>
+                    <span class="var">P(favorite)</span> <span class="op">=</span> 0.45<br>
+                    <span class="var">P(retweet)</span> <span class="op">=</span> 0.12<br>
+                    <span class="var">P(reply)</span> <span class="op">=</span> 0.08<br>
+                    <span class="var">P(dwell)</span> <span class="op">=</span> 0.65<br>
+                    <span class="var">P(negative_feedback)</span> <span class="op">=</span> 0.02<br>
+                    <span class="comment">// Other signals: 0.1-0.3 range</span>
+                </div>
+
+                <div class="formula">
+                    <strong>Step 1: Per-Head Max Normalization</strong><br>
+                    Assume across all candidates:<br>
+                    <span class="var">max(P(favorite))</span> <span class="op">=</span> 0.85<br>
+                    <span class="var">max(P(retweet))</span> <span class="op">=</span> 0.40<br>
+                    <span class="var">max(P(dwell))</span> <span class="op">=</span> 0.90<br><br>
+
+                    Normalized scores for Tweet A:<br>
+                    <span class="var">norm_fav</span> <span class="op">=</span> 0.45 / 0.85 <span class="op">=</span> 0.529<br>
+                    <span class="var">norm_rt</span> <span class="op">=</span> 0.12 / 0.40 <span class="op">=</span> 0.300<br>
+                    <span class="var">norm_dwell</span> <span class="op">=</span> 0.65 / 0.90 <span class="op">=</span> 0.722<br>
+                </div>
+
+                <div class="formula">
+                    <strong>Step 2: Apply Weights</strong><br>
+                    Assume weights (hypothetical):<br>
+                    <span class="var">w_fav</span> <span class="op">=</span> 1000<br>
+                    <span class="var">w_rt</span> <span class="op">=</span> 1200<br>
+                    <span class="var">w_dwell</span> <span class="op">=</span> 500<br>
+                    <span class="var">w_neg</span> <span class="op">=</span> -5000<br><br>
+
+                    Weighted scores:<br>
+                    <span class="var">weighted_fav</span> <span class="op">=</span> 0.529 <span class="op">×</span> 1000 <span class="op">=</span> 529<br>
+                    <span class="var">weighted_rt</span> <span class="op">=</span> 0.300 <span class="op">×</span> 1200 <span class="op">=</span> 360<br>
+                    <span class="var">weighted_dwell</span> <span class="op">=</span> 0.722 <span class="op">×</span> 500 <span class="op">=</span> 361<br>
+                    <span class="var">weighted_neg</span> <span class="op">=</span> 0 <span class="comment">// Below threshold</span>
+                </div>
+
+                <div class="formula">
+                    <strong>Step 3: Aggregate</strong><br>
+                    <span class="var">combined_score</span> <span class="op">=</span> 529 <span class="op">+</span> 360 <span class="op">+</span> 361 <span class="op">+</span> ... <span class="op">=</span> 2,847
+                </div>
+
+                <div class="formula">
+                    <strong>Step 4: Add Epsilon</strong><br>
+                    <span class="var">final_score</span> <span class="op">=</span> 2,847 <span class="op">+</span> 0.001 <span class="op">=</span> <strong>2,847.001</strong>
+                </div>
+
+                <p style="margin-top: 25px; color: #17bf63; font-size: 1.1em;">
+                    <strong>Result:</strong> Tweet A receives a final score of 2,847.001 and is ranked accordingly.
+                </p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔬 Advanced Features</h2>
+
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <span class="stat-value">Bias/Debias</span>
+                    <span class="stat-label">Per-signal bias correction parameters</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value">Threshold Filters</span>
+                    <span class="stat-label">Normalized & constant negative thresholds</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value">Multi-Model</span>
+                    <span class="stat-label">Phoenix + Production ensemble</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value">A/B Testing</span>
+                    <span class="stat-label">Feature-switch gated experiments</span>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <strong>💡 Why This Architecture is Powerful:</strong>
+                <ul style="margin-top: 15px;">
+                    <li><strong>Flexibility:</strong> Weights adjustable without retraining → rapid iteration</li>
+                    <li><strong>Interpretability:</strong> Each signal's contribution is explicit and measurable</li>
+                    <li><strong>Multi-Objective:</strong> Balances 15 different engagement goals simultaneously</li>
+                    <li><strong>Context-Aware:</strong> Different strategies for different content types/user contexts</li>
+                    <li><strong>Testable:</strong> Easy A/B testing of weight configurations</li>
+                    <li><strong>Safety-Aware:</strong> Negative feedback signal actively suppresses low-quality content</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; color: #8899a6; border-top: 1px solid #38444d;">
+            <p><a href="index.html" style="color: #1da1f2;">← Back to Overview</a> | <a href="pipeline.html" style="color: #1da1f2;">Pipeline →</a></p>
+            <p style="margin-top: 15px;">Twitter Algorithm Architecture Documentation</p>
+        </footer>
+    </div>
+</body>
+</html>

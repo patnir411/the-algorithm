@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Algorithm Architecture - Complete Visual Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #15202b;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(29, 161, 242, 0.3);
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .nav-card {
+            background: #192734;
+            border-radius: 12px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #38444d;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #1da1f2, #0d8bd9);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-5px);
+            border-color: #1da1f2;
+            box-shadow: 0 10px 30px rgba(29, 161, 242, 0.2);
+        }
+
+        .nav-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .nav-card h2 {
+            color: #1da1f2;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .nav-card p {
+            color: #8899a6;
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+
+        .nav-card .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .overview {
+            background: #192734;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border-left: 5px solid #1da1f2;
+        }
+
+        .overview h2 {
+            color: #1da1f2;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-box {
+            background: #15202b;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #38444d;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            color: #1da1f2;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #8899a6;
+            font-size: 0.95em;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .tech-badge {
+            background: #1da1f2;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px;
+            color: #8899a6;
+            border-top: 1px solid #38444d;
+        }
+
+        .architecture-diagram {
+            background: #192734;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        .flow-container {
+            min-width: 800px;
+            padding: 20px;
+        }
+
+        .flow-box {
+            background: #15202b;
+            border: 2px solid #1da1f2;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .flow-box h3 {
+            color: #1da1f2;
+            margin-bottom: 10px;
+        }
+
+        .flow-arrow {
+            text-align: center;
+            color: #1da1f2;
+            font-size: 2em;
+            margin: 10px 0;
+        }
+
+        .highlight-box {
+            background: rgba(29, 161, 242, 0.1);
+            border-left: 3px solid #1da1f2;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning-box {
+            background: rgba(255, 173, 31, 0.1);
+            border-left: 3px solid #ffad1f;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning-box h3 {
+            color: #ffad1f;
+        }
+
+        code {
+            background: #15202b;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #1da1f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐦 Twitter Algorithm Architecture</h1>
+            <p class="subtitle">Complete Visual Guide & Technical Deep Dive</p>
+            <p style="margin-top: 15px; opacity: 0.8;">Open Source Algorithm Analysis - Comprehensive Documentation</p>
+        </header>
+
+        <div class="overview">
+            <h2>📊 System Overview</h2>
+            <p>Twitter's recommendation algorithm is a sophisticated, multi-layered system that processes billions of tweets to deliver personalized timelines. The architecture combines machine learning, graph algorithms, real-time processing, and extensive filtering to recommend content at massive scale.</p>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-number">6,133</span>
+                    <span class="stat-label">Source Files</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">6,000+</span>
+                    <span class="stat-label">Features per Tweet</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">15</span>
+                    <span class="stat-label">Engagement Signals</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">Filter Types</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">10+</span>
+                    <span class="stat-label">Candidate Sources</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">145K</span>
+                    <span class="stat-label">SimClusters Communities</span>
+                </div>
+            </div>
+
+            <h3 style="color: #1da1f2; margin-top: 30px; margin-bottom: 15px;">Technology Stack</h3>
+            <div class="tech-stack">
+                <span class="tech-badge">Scala (79%)</span>
+                <span class="tech-badge">Java (17%)</span>
+                <span class="tech-badge">Python (3%)</span>
+                <span class="tech-badge">Rust (0.5%)</span>
+                <span class="tech-badge">TensorFlow</span>
+                <span class="tech-badge">Bazel</span>
+                <span class="tech-badge">Thrift RPC</span>
+                <span class="tech-badge">Kafka</span>
+                <span class="tech-badge">GraphJet</span>
+                <span class="tech-badge">Scalding</span>
+            </div>
+        </div>
+
+        <h2 style="color: #1da1f2; margin: 40px 0 30px 0; font-size: 2em;">📚 Explore the Architecture</h2>
+
+        <div class="nav-grid">
+            <a href="pipeline.html">
+                <div class="nav-card">
+                    <div class="icon">🔄</div>
+                    <h2>Recommendation Pipeline</h2>
+                    <p>Complete flow from user request to ranked timeline. Includes candidate generation, feature hydration, scoring, and filtering stages.</p>
+                </div>
+            </a>
+
+            <a href="ranking.html">
+                <div class="nav-card">
+                    <div class="icon">📈</div>
+                    <h2>Ranking & Scoring</h2>
+                    <p>Deep dive into the 15 engagement signals, weight parameters, score aggregation, and multi-task learning models.</p>
+                </div>
+            </a>
+
+            <a href="candidates.html">
+                <div class="nav-card">
+                    <div class="icon">🎯</div>
+                    <h2>Candidate Sources</h2>
+                    <p>All 10+ sources of tweet candidates: Earlybird, UTEG, SimClusters, Real Graph, FRS, and more. In-network vs out-of-network.</p>
+                </div>
+            </a>
+
+            <a href="ml-models.html">
+                <div class="nav-card">
+                    <div class="icon">🤖</div>
+                    <h2>ML Models & Features</h2>
+                    <p>Neural networks, gradient boosting, feature engineering pipeline with 6000+ features, and model serving infrastructure.</p>
+                </div>
+            </a>
+
+            <a href="graphs.html">
+                <div class="nav-card">
+                    <div class="icon">🕸️</div>
+                    <h2>Graph Algorithms</h2>
+                    <p>SimClusters community detection, Real Graph, GraphJet, PageRank, SALSA, and graph traversal patterns.</p>
+                </div>
+            </a>
+
+            <a href="filtering.html">
+                <div class="nav-card">
+                    <div class="icon">🛡️</div>
+                    <h2>Filtering & Safety</h2>
+                    <p>50+ filters including safety models, deduplication, diversity mechanisms, quality scoring, and visibility rules.</p>
+                </div>
+            </a>
+
+            <a href="services.html">
+                <div class="nav-card">
+                    <div class="icon">⚙️</div>
+                    <h2>Services Architecture</h2>
+                    <p>Microservices breakdown: Home-Mixer, CR-Mixer, Pushservice, Navi, Tweetypie, and 20+ other components.</p>
+                </div>
+            </a>
+
+            <a href="reference.html">
+                <div class="nav-card">
+                    <div class="icon">📖</div>
+                    <h2>Technical Reference</h2>
+                    <p>Complete API documentation, configuration parameters, file locations, and technical specifications.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="architecture-diagram">
+            <h2 style="color: #1da1f2; margin-bottom: 25px;">High-Level Architecture Flow</h2>
+            <div class="flow-container">
+                <div class="flow-box">
+                    <h3>1. User Request</h3>
+                    <p>Client requests "For You" timeline → <strong>Home-Mixer</strong> service</p>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h3>2. Query Feature Hydration</h3>
+                    <p>Fetch user context: social graph, preferences, demographics, engagement history (~100 features)</p>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h3>3. Candidate Generation (Parallel)</h3>
+                    <p><strong>10+ sources</strong> fetch candidates simultaneously:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Earlybird Search (in-network)</li>
+                        <li>UTEG (out-of-network with social proof)</li>
+                        <li>SimClusters ANN (community-based)</li>
+                        <li>Real Graph (user similarity)</li>
+                        <li>CR-Mixer (orchestrator)</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>~1,500 - 4,000 candidates</strong></p>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h3>4. Candidate Feature Hydration</h3>
+                    <p>Enrich each candidate with <strong>~6,000 features</strong>:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Author features (reputation, verification)</li>
+                        <li>Content features (text, media, entities)</li>
+                        <li>Engagement features (likes, RTs, replies)</li>
+                        <li>Graph features (user-author similarity)</li>
+                        <li>Embedding features (SimClusters, TwHIN)</li>
+                        <li>Real-time aggregates (hourly stats)</li>
+                    </ul>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h3>5. ML Scoring (Navi Model Serving)</h3>
+                    <p>Neural network predicts <strong>15 engagement probabilities</strong> per tweet:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Like probability (weight: dynamic)</li>
+                        <li>Retweet probability</li>
+                        <li>Reply probability</li>
+                        <li>Video watch probability</li>
+                        <li>Click probability</li>
+                        <li>...and 10 more signals</li>
+                    </ul>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h3>6. Score Aggregation & Ranking</h3>
+                    <p><strong>Weighted sum</strong> with per-head normalization:</p>
+                    <p style="margin-top: 10px;"><code>finalScore = Σ(signal_i × weight_i) + ε</code></p>
+                    <p style="margin-top: 10px;">Candidates sorted by final score (descending)</p>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h3>7. Filtering & Quality Control</h3>
+                    <p>Apply <strong>50+ filters</strong>:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Safety filters (NSFW, spam, abuse)</li>
+                        <li>Deduplication (semantic clustering)</li>
+                        <li>Author diversity (exponential decay)</li>
+                        <li>Content balance (in/out network ratio)</li>
+                        <li>Visibility rules (blocks, mutes)</li>
+                    </ul>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h3>8. Mixing & Assembly</h3>
+                    <p>Inject additional content:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Ads (organic positions)</li>
+                        <li>Who-to-Follow modules</li>
+                        <li>Trending topics</li>
+                        <li>Stories/Fleets</li>
+                        <li>Conversation modules</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>~35 tweets</strong> in final response</p>
+                </div>
+
+                <div class="flow-arrow">↓</div>
+
+                <div class="flow-box">
+                    <h3>9. Response Marshalling</h3>
+                    <p>Serialize to URT (Universal Recommendation Timeline) format → Client</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <h3 style="color: #1da1f2;">⚡ Key Performance Characteristics</h3>
+            <ul style="margin-top: 15px; margin-left: 20px; line-height: 2;">
+                <li><strong>Latency:</strong> ~200-500ms end-to-end for timeline generation</li>
+                <li><strong>Scale:</strong> 50+ RPS per Earlybird shard, 6000+ RPS for SimClusters ANN</li>
+                <li><strong>Parallelization:</strong> Candidate sources run in parallel via Stitch framework</li>
+                <li><strong>Feature Hydration:</strong> Batch fetching from 20+ services concurrently</li>
+                <li><strong>Real-time Updates:</strong> GraphJet processes streaming Kafka events with ~50ms delay</li>
+                <li><strong>Batch Processing:</strong> Daily jobs for embeddings (SimClusters, Real Graph)</li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <h3>🔍 What Makes This Algorithm Unique</h3>
+            <ul style="margin-top: 15px; margin-left: 20px; line-height: 2;">
+                <li><strong>Hybrid Architecture:</strong> Combines real-time streaming (GraphJet) with batch ML (SimClusters)</li>
+                <li><strong>Multi-Task Learning:</strong> Single model predicts 15 different engagement types</li>
+                <li><strong>Social Proof:</strong> Out-of-network recommendations show which connections engaged</li>
+                <li><strong>Extreme Flexibility:</strong> All weights dynamically adjustable via feature switches (A/B testing)</li>
+                <li><strong>Graph-Powered:</strong> Multiple specialized graphs (User-Tweet, User-Video, User-User, UTEG)</li>
+                <li><strong>Embedding-Rich:</strong> SimClusters (sparse), TwHIN (dense), Real Graph, author/tweet embeddings</li>
+                <li><strong>Safety-First:</strong> Multiple ML models for NSFW, spam, toxicity with rule-based enforcement</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>Twitter Algorithm Architecture Documentation</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">Generated from open-source codebase analysis</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">Source: <code>/home/user/the-algorithm</code></p>
+        </footer>
+    </div>
+</body>
+</html>

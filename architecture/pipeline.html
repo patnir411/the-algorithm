@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendation Pipeline - Twitter Algorithm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #15202b;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 12px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #ffffff;
+            text-decoration: none;
+            opacity: 0.9;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+        }
+
+        .pipeline-stage {
+            background: #192734;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border-left: 5px solid #1da1f2;
+            position: relative;
+        }
+
+        .pipeline-stage h2 {
+            color: #1da1f2;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .stage-number {
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: #1da1f2;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .subsection {
+            background: #15202b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #38444d;
+        }
+
+        .subsection h3 {
+            color: #1da1f2;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background: #15202b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #1da1f2;
+            font-size: 0.95em;
+        }
+
+        pre {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 1px solid #38444d;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #8899a6;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: #15202b;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #38444d;
+        }
+
+        .info-box h4 {
+            color: #1da1f2;
+            margin-bottom: 10px;
+        }
+
+        .info-box .value {
+            font-size: 1.5em;
+            color: #ffffff;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .info-box .label {
+            color: #8899a6;
+            font-size: 0.9em;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+            color: #8899a6;
+        }
+
+        ul li, ol li {
+            margin: 8px 0;
+            line-height: 1.8;
+        }
+
+        strong {
+            color: #ffffff;
+        }
+
+        .highlight {
+            background: rgba(29, 161, 242, 0.1);
+            border-left: 3px solid #1da1f2;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .flow-diagram {
+            background: #15202b;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 25px 0;
+            overflow-x: auto;
+        }
+
+        .flow-row {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            gap: 15px;
+        }
+
+        .flow-box {
+            flex: 1;
+            background: #192734;
+            padding: 20px;
+            border: 2px solid #1da1f2;
+            border-radius: 8px;
+            min-width: 200px;
+        }
+
+        .flow-box h4 {
+            color: #1da1f2;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .flow-arrow {
+            color: #1da1f2;
+            font-size: 2em;
+            flex-shrink: 0;
+        }
+
+        .parallel-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .parallel-box {
+            background: #192734;
+            padding: 15px;
+            border: 2px solid #17bf63;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .parallel-box h4 {
+            color: #17bf63;
+            font-size: 1em;
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #38444d;
+        }
+
+        th {
+            background: #1da1f2;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(29, 161, 242, 0.05);
+        }
+
+        .metric {
+            display: inline-block;
+            background: #1da1f2;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin: 5px 5px 5px 0;
+        }
+
+        .file-ref {
+            background: #15202b;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 3px solid #17bf63;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #17bf63;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Back to Overview</a>
+            <h1>🔄 Recommendation Pipeline</h1>
+            <p>Complete flow from user request to ranked timeline</p>
+        </header>
+
+        <div class="pipeline-stage">
+            <div class="stage-number">1</div>
+            <h2>Request Entry & Product Pipeline</h2>
+
+            <p>The journey begins when a user opens the "For You" timeline. The request enters through the <strong>Home-Mixer</strong> service.</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/server/src/main/scala/com/twitter/home_mixer/product/for_you/ForYouProductPipelineConfig.scala
+            </div>
+
+            <div class="subsection">
+                <h3>Request Transformation</h3>
+                <p>The <code>ForYouProductPipelineConfig</code> transforms the incoming <code>HomeMixerRequest</code> into an internal <code>ForYouQuery</code> object.</p>
+
+                <pre><code>HomeMixerRequest → ForYouQuery
+  - Client context (user ID, device, location)
+  - Cursor for pagination
+  - Debug options
+  - Requested max results (default: 35)
+  - Device context
+  - Seen tweet IDs (for dedup)</code></pre>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Service</h4>
+                    <span class="value">Home-Mixer</span>
+                    <span class="label">Main orchestrator</span>
+                </div>
+                <div class="info-box">
+                    <h4>Framework</h4>
+                    <span class="value">Product Mixer</span>
+                    <span class="label">Scala-based pipeline framework</span>
+                </div>
+                <div class="info-box">
+                    <h4>Default Results</h4>
+                    <span class="value">35</span>
+                    <span class="label">Tweets per response</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pipeline-stage">
+            <div class="stage-number">2</div>
+            <h2>Query Feature Hydration</h2>
+
+            <p>Before fetching candidates, the system hydrates <strong>query-level features</strong> about the requesting user. This provides context for downstream ranking.</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/server/src/main/scala/com/twitter/home_mixer/product/for_you/ForYouMixerPipelineConfig.scala:166-195
+            </div>
+
+            <div class="subsection">
+                <h3>20+ Query Feature Hydrators</h3>
+
+                <div class="parallel-container">
+                    <div class="parallel-box">
+                        <h4>User Metadata</h4>
+                        <p>Followers, following, verification, premium status</p>
+                    </div>
+                    <div class="parallel-box">
+                        <h4>Social Graph</h4>
+                        <p>Users followed, Real Graph scores</p>
+                    </div>
+                    <div class="parallel-box">
+                        <h4>Impressions</h4>
+                        <p>Bloom filter of seen tweets (dedup)</p>
+                    </div>
+                    <div class="parallel-box">
+                        <h4>Preferences</h4>
+                        <p>Topics followed, subscription status</p>
+                    </div>
+                    <div class="parallel-box">
+                        <h4>Recent Timeline</h4>
+                        <p>Previously served tweets</p>
+                    </div>
+                    <div class="parallel-box">
+                        <h4>Rate Limits</h4>
+                        <p>User rate limit status</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <strong>💡 Why Query Features Matter:</strong> These features help the system understand user preferences, avoid showing duplicate content, and personalize recommendations before even fetching candidates.
+            </div>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Features Fetched</h4>
+                    <span class="value">~100</span>
+                    <span class="label">Query-level features</span>
+                </div>
+                <div class="info-box">
+                    <h4>Execution</h4>
+                    <span class="value">Parallel</span>
+                    <span class="label">Via Stitch framework</span>
+                </div>
+                <div class="info-box">
+                    <h4>Latency</h4>
+                    <span class="value">~50-100ms</span>
+                    <span class="label">For all hydrators</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pipeline-stage">
+            <div class="stage-number">3</div>
+            <h2>Candidate Pipeline Orchestration</h2>
+
+            <p>The mixer runs <strong>22+ candidate pipelines in parallel</strong>. The primary pipeline is <code>forYouScoredTweetsCandidatePipelineConfig</code>, which fetches ranked tweet candidates.</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/server/src/main/scala/com/twitter/home_mixer/product/for_you/ForYouMixerPipelineConfig.scala:247-278
+            </div>
+
+            <div class="subsection">
+                <h3>Candidate Pipelines</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pipeline</th>
+                            <th>Purpose</th>
+                            <th>Typical Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>forYouScoredTweetsCandidatePipeline</code></td>
+                            <td>Main ranking engine output</td>
+                            <td>~1,500 tweets</td>
+                        </tr>
+                        <tr>
+                            <td><code>forYouAdsCandidatePipeline</code></td>
+                            <td>Promoted tweets</td>
+                            <td>~10-20 ads</td>
+                        </tr>
+                        <tr>
+                            <td><code>forYouWhoToFollowCandidatePipeline</code></td>
+                            <td>User recommendations</td>
+                            <td>~3-5 users</td>
+                        </tr>
+                        <tr>
+                            <td><code>forYouCommunitiesToJoinCandidatePipeline</code></td>
+                            <td>Community suggestions</td>
+                            <td>~2-3 communities</td>
+                        </tr>
+                        <tr>
+                            <td><code>forYouScoredVideoTweetsCandidatePipeline</code></td>
+                            <td>Video carousel</td>
+                            <td>~5-10 videos</td>
+                        </tr>
+                        <tr>
+                            <td><code>forYouTweetPreviewsCandidatePipeline</code></td>
+                            <td>Tweet previews</td>
+                            <td>Variable</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight">
+                <strong>⚡ Performance Optimization:</strong> All pipelines execute in parallel using Scala's Stitch framework, minimizing total latency. The slowest pipeline determines overall latency.
+            </div>
+        </div>
+
+        <div class="pipeline-stage">
+            <div class="stage-number">4</div>
+            <h2>Scored Tweets Recommendation Pipeline</h2>
+
+            <p>This is where the <strong>real ranking magic happens</strong>. The <code>ScoredTweetsRecommendationPipelineConfig</code> orchestrates candidate generation, feature hydration, and ML scoring.</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/server/src/main/scala/com/twitter/home_mixer/product/scored_tweets/ScoredTweetsRecommendationPipelineConfig.scala
+            </div>
+
+            <div class="subsection">
+                <h3>Stage 4.1: Candidate Source Fetching</h3>
+
+                <div class="flow-diagram">
+                    <div class="parallel-container">
+                        <div class="parallel-box">
+                            <h4>Earlybird</h4>
+                            <p>In-network tweets from search index</p>
+                            <span class="metric">~800 tweets</span>
+                        </div>
+                        <div class="parallel-box">
+                            <h4>Tweet Mixer</h4>
+                            <p>Multiple mixed sources</p>
+                            <span class="metric">~400 tweets</span>
+                        </div>
+                        <div class="parallel-box">
+                            <h4>UTEG</h4>
+                            <p>Out-of-network (liked by)</p>
+                            <span class="metric">~200 tweets</span>
+                        </div>
+                        <div class="parallel-box">
+                            <h4>Lists</h4>
+                            <p>From user's lists</p>
+                            <span class="metric">~100 tweets</span>
+                        </div>
+                        <div class="parallel-box">
+                            <h4>Communities</h4>
+                            <p>Community tweets</p>
+                            <span class="metric">~50 tweets</span>
+                        </div>
+                        <div class="parallel-box">
+                            <h4>Cache</h4>
+                            <p>Previously scored</p>
+                            <span class="metric">~200 tweets</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="text-align: center; margin-top: 20px; font-size: 1.2em; color: #17bf63;">
+                    <strong>Total: ~1,500 - 2,000 candidates</strong>
+                </p>
+            </div>
+
+            <div class="subsection">
+                <h3>Stage 4.2: Candidate Feature Hydration</h3>
+
+                <p>Each candidate is enriched with <strong>~6,000 features</strong> across multiple hydration phases.</p>
+
+                <div class="file-ref">
+                    📁 /home-mixer/product/scored_tweets/scoring_pipeline/ScoredTweetsModelScoringPipelineConfig.scala
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <h4>Phase 1</h4>
+                        <span class="value">~50+</span>
+                        <span class="label">Pre-scoring hydrators</span>
+                    </div>
+                    <div class="info-box">
+                        <h4>Features</h4>
+                        <span class="value">~6,000</span>
+                        <span class="label">Per candidate</span>
+                    </div>
+                    <div class="info-box">
+                        <h4>Latency</h4>
+                        <span class="value">~100-200ms</span>
+                        <span class="label">Batch hydration</span>
+                    </div>
+                </div>
+
+                <h4>Feature Categories:</h4>
+                <ul>
+                    <li><strong>Author Features:</strong> Reputation, verification, follower count, abuse strikes</li>
+                    <li><strong>Content Features:</strong> Text embeddings, entities, media, language</li>
+                    <li><strong>Engagement Features:</strong> Like/RT/reply counts, velocity, age-adjusted</li>
+                    <li><strong>Graph Features:</strong> User-author similarity (Real Graph), social connections</li>
+                    <li><strong>Embedding Features:</strong> SimClusters, TwHIN, Transformer embeddings</li>
+                    <li><strong>Temporal Features:</strong> Tweet age, hour of day, day of week</li>
+                    <li><strong>Real-time Aggregates:</strong> Hourly engagement statistics</li>
+                    <li><strong>Safety Features:</strong> NSFW scores, spam scores, toxicity scores</li>
+                </ul>
+
+                <div class="highlight">
+                    <strong>🔧 Hydration Strategy:</strong> Features are batched by service to minimize RPC calls. For example, all candidates' author features are fetched in a single batch call to the author service.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3>Stage 4.3: ML Scoring</h3>
+
+                <p>Features are fed to machine learning models via the <strong>Navi</strong> serving platform.</p>
+
+                <div class="flow-diagram">
+                    <div class="flow-row">
+                        <div class="flow-box">
+                            <h4>Features → DataRecord</h4>
+                            <p>Convert to ML format</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box">
+                            <h4>Navi ML Serving</h4>
+                            <p>Batch inference (Rust/TensorFlow)</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box">
+                            <h4>15 Predictions</h4>
+                            <p>Per-signal probabilities</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="file-ref">
+                    📁 /home-mixer/functional_component/scorer/NaviModelScorer.scala
+                </div>
+
+                <h4>15 Engagement Signal Predictions:</h4>
+                <ol>
+                    <li>Favorite (like) probability</li>
+                    <li>Retweet probability</li>
+                    <li>Reply probability</li>
+                    <li>Reply engagement by author</li>
+                    <li>Bookmark probability</li>
+                    <li>Share probability</li>
+                    <li>Good click probability (engagement click)</li>
+                    <li>Good click with dwell probability</li>
+                    <li>Good profile click probability</li>
+                    <li>Dwell time probability</li>
+                    <li>Video quality view probability</li>
+                    <li>Video quality view immersive</li>
+                    <li>Video watch time</li>
+                    <li>Video quality watch</li>
+                    <li>Negative feedback probability</li>
+                </ol>
+            </div>
+
+            <div class="subsection">
+                <h3>Stage 4.4: Score Reranking</h3>
+
+                <p>Model predictions are aggregated using a <strong>weighted sum</strong> with per-head normalization.</p>
+
+                <div class="file-ref">
+                    📁 /home-mixer/functional_component/scorer/WeighedModelRerankingScorer.scala
+                </div>
+
+                <pre><code>For each candidate:
+  1. Normalize each signal by per-head maximum
+     normalized_score_i = score_i / max(all_scores_i)
+
+  2. Apply dynamic weights
+     weighted_score_i = normalized_score_i × weight_i
+
+  3. Aggregate
+     final_score = Σ(weighted_score_i) + ε
+     where ε = 0.001 (epsilon for precision)
+
+  4. Sort candidates by final_score (descending)</code></pre>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <h4>Normalization</h4>
+                        <span class="value">Per-Head Max</span>
+                        <span class="label">Prevents single signal domination</span>
+                    </div>
+                    <div class="info-box">
+                        <h4>Weights</h4>
+                        <span class="value">Dynamic</span>
+                        <span class="label">Feature-switch controlled</span>
+                    </div>
+                    <div class="info-box">
+                        <h4>Range</h4>
+                        <span class="value">-10K to +10K</span>
+                        <span class="label">Per weight parameter</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pipeline-stage">
+            <div class="stage-number">5</div>
+            <h2>Result Selection & Filtering</h2>
+
+            <p>Scored candidates go through <strong>sequential selectors</strong> that filter, deduplicate, and position content.</p>
+
+            <div class="file-ref">
+                📁 /home-mixer/product/for_you/ForYouMixerPipelineConfig.scala:307-541
+            </div>
+
+            <div class="subsection">
+                <h3>Selector Pipeline (30+ Steps)</h3>
+
+                <ol>
+                    <li><strong>UpdateSortCandidates:</strong> Sort by final score (descending)</li>
+                    <li><strong>UpdateConversationModuleId:</strong> Group conversation threads</li>
+                    <li><strong>RemoveDuplicateCandidatesOutsideModule:</strong> Dedup video carousel</li>
+                    <li><strong>DropMaxCandidates:</strong> Limit to top 35 scored tweets</li>
+                    <li><strong>InsertAdResults:</strong> Inject ads at organic positions</li>
+                    <li><strong>InsertFixedPositionResults:</strong> Add trends, stories at fixed positions</li>
+                    <li><strong>DropOrthogonalCandidates:</strong> Remove non-tweet modules if needed</li>
+                    <li><strong>DropModuleTooFewModuleItemResults:</strong> Ensure min module size</li>
+                    <li><strong>UpdateSortModuleItemCandidates:</strong> Sort within modules</li>
+                    <li><strong>Insert*:</strong> Various insertions for different content types</li>
+                </ol>
+
+                <div class="highlight">
+                    <strong>🎯 Key Insight:</strong> Selectors run <strong>sequentially</strong> in the order defined. Each selector transforms the candidate list before passing to the next.
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Input Candidates</h4>
+                    <span class="value">~1,500</span>
+                    <span class="label">After scoring</span>
+                </div>
+                <div class="info-box">
+                    <h4>Output Candidates</h4>
+                    <span class="value">~35</span>
+                    <span class="label">Final timeline</span>
+                </div>
+                <div class="info-box">
+                    <h4>Reduction</h4>
+                    <span class="value">97.7%</span>
+                    <span class="label">Filtered out</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pipeline-stage">
+            <div class="stage-number">6</div>
+            <h2>Side Effects & Logging</h2>
+
+            <p>After selection, the system executes <strong>side effects</strong> for tracking, analytics, and future optimization.</p>
+
+            <div class="subsection">
+                <h3>Side Effect Types</h3>
+
+                <ul>
+                    <li><strong>UpdateTimelinesPersistenceStoreSideEffect:</strong> Cache served tweets for deduplication</li>
+                    <li><strong>HomeScribeServedCandidatesSideEffect:</strong> Log served candidates to Scribe</li>
+                    <li><strong>ServedCandidateFeatureKeysKafkaSideEffect:</strong> Send feature keys to Kafka</li>
+                    <li><strong>UpdateLastNonPollingTime:</strong> Track user engagement timeline</li>
+                    <li><strong>PublishClientSentImpressions:</strong> Emit impression events</li>
+                    <li><strong>TruncateTimelinesPersistenceStoreSideEffect:</strong> Cleanup old cache</li>
+                </ul>
+
+                <div class="highlight">
+                    <strong>📊 Why Side Effects Matter:</strong> These logs feed into ML training pipelines, A/B testing analysis, and real-time monitoring dashboards.
+                </div>
+            </div>
+        </div>
+
+        <div class="pipeline-stage">
+            <div class="stage-number">7</div>
+            <h2>Domain & Transport Marshalling</h2>
+
+            <p>The final step converts internal candidate objects to client-ready format.</p>
+
+            <div class="subsection">
+                <h3>Two-Stage Marshalling</h3>
+
+                <div class="flow-diagram">
+                    <div class="flow-row">
+                        <div class="flow-box">
+                            <h4>Domain Marshaller</h4>
+                            <p>Candidates → URT Domain Objects</p>
+                            <p style="font-size: 0.9em; margin-top: 10px;">Adds social context, feedback actions, entry IDs</p>
+                        </div>
+                        <div class="flow-arrow">→</div>
+                        <div class="flow-box">
+                            <h4>Transport Marshaller</h4>
+                            <p>Domain → Thrift/JSON</p>
+                            <p style="font-size: 0.9em; margin-top: 10px;">Serializes for network transport</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="file-ref">
+                    📁 /home-mixer/marshaller/response/ForYouResponseDomainMarshaller.scala<br>
+                    📁 /product-mixer/core/src/main/scala/com/twitter/product_mixer/core/marshaller/UrtTransportMarshaller.scala
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3>URT Response Format</h3>
+
+                <pre><code>urt.TimelineResponse {
+  timeline: {
+    id: "for-you-timeline",
+    instructions: [
+      {
+        type: "AddEntries",
+        entries: [
+          {
+            entryId: "tweet-1234567890",
+            item: {
+              content: {
+                tweet: { id: "1234567890", ... },
+                socialContext: { likedBy: [...] },
+                feedbackActions: [...]
+              }
+            }
+          },
+          { entryId: "who-to-follow-module", ... },
+          { entryId: "ad-1234", ... }
+        ]
+      }
+    ],
+    metadata: { scribeConfig: {...} }
+  },
+  responseMetadata: {
+    feedbackActions: [...]
+  }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="pipeline-stage">
+            <div class="stage-number">8</div>
+            <h2>Response Delivery</h2>
+
+            <p>The marshalled response is returned to the client via Thrift RPC.</p>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Total Latency</h4>
+                    <span class="value">200-500ms</span>
+                    <span class="label">End-to-end typical</span>
+                </div>
+                <div class="info-box">
+                    <h4>Response Size</h4>
+                    <span class="value">~35 tweets</span>
+                    <span class="label">Plus modules/ads</span>
+                </div>
+                <div class="info-box">
+                    <h4>Cache TTL</h4>
+                    <span class="value">~30s</span>
+                    <span class="label">Client-side cache</span>
+                </div>
+            </div>
+
+            <div class="highlight">
+                <strong>🎉 Pipeline Complete!</strong> The user now sees a personalized timeline combining in-network and out-of-network content, ranked by predicted engagement likelihood, with ads and recommendations mixed in.
+            </div>
+        </div>
+
+        <div class="pipeline-stage">
+            <h2>⚡ Performance Characteristics</h2>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Candidate Sources</h4>
+                    <span class="value">9</span>
+                    <span class="label">Running in parallel</span>
+                </div>
+                <div class="info-box">
+                    <h4>Feature Hydrators</h4>
+                    <span class="value">50+</span>
+                    <span class="label">Batched by service</span>
+                </div>
+                <div class="info-box">
+                    <h4>ML Inference</h4>
+                    <span class="value">~50-100ms</span>
+                    <span class="label">Navi batch prediction</span>
+                </div>
+                <div class="info-box">
+                    <h4>Selectors</h4>
+                    <span class="value">30+</span>
+                    <span class="label">Sequential execution</span>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; color: #1da1f2;">Optimization Techniques</h3>
+            <ul>
+                <li><strong>Parallel Execution:</strong> Stitch framework for async/concurrent operations</li>
+                <li><strong>Batch Fetching:</strong> Group RPC calls by service to reduce latency</li>
+                <li><strong>Caching:</strong> Multi-layer caching (Memcached, Manhattan, client-side)</li>
+                <li><strong>Feature Switches:</strong> Gradual rollouts and A/B testing without deployment</li>
+                <li><strong>Circuit Breakers:</strong> Fallback to cached/backup sources on failures</li>
+                <li><strong>Request Sampling:</strong> Load shedding during high traffic</li>
+            </ul>
+        </div>
+
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; color: #8899a6; border-top: 1px solid #38444d;">
+            <p><a href="index.html" style="color: #1da1f2;">← Back to Overview</a></p>
+            <p style="margin-top: 15px;">Twitter Algorithm Architecture Documentation</p>
+        </footer>
+    </div>
+</body>
+</html>
